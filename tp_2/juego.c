@@ -26,7 +26,7 @@ const char ENANO='G';
 const char ELFO='L';
 const char SI ='S';
 const char NO ='N';
-#define MAX_LETRAS_DEFENSOR 15 
+#define MAX_LETRAS_DEFENSOR 15
 
 typedef struct campo{
 	int tope;
@@ -44,10 +44,10 @@ typedef struct campo{
 */
 void mostrar_inicio(){
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
-    	printf("     ________                                                ________ \n");
-	printf("    (o.____.o)____        `-                   -'       ____(o.____.o)\n"); 
-	printf("      |    | /,--.                                     (,--.  |    |\n");  
-    	printf("      |    |((  -` ___                               ___`   ))|    |\n");
+  printf("     ________                                                ________ \n");
+	printf("    (o.____.o)____        `-                   -'       ____(o.____.o)\n");
+	printf("      |    | /,--.                                     (,--.  |    |\n");
+  printf("      |    |((  -` ___                               ___`   ))|    |\n");
 	printf("      |    | || ,'',  `.                           .'  .``.// |    |\n");
 	printf("      |    |  // (___,'.     _________________    .'.___)     |    |\n");
 	printf("      |    | ;;))  ____) .   |               |  . (____  ((   |    |\n");
@@ -117,7 +117,7 @@ void mostrar_campo(juego_t juego){
 	system("clear");
 }
 /*
-*Análsis: Asigna la posicion de la entrada y la torre para el nivel 1 
+*Análsis: Asigna la posicion de la entrada y la torre para el nivel 1
 *Pre: -
 *Post: Entrada y torre (principio y fin del camino) asignados
 */
@@ -128,7 +128,7 @@ void asignar_entrada_torre_nvl_1 (campo_t* campo){
 	campo->torre_1.col = 0;
 }
 /*
-*Análsis: Asigna la posicion de la entrada y la torre para el nivel 2 
+*Análsis: Asigna la posicion de la entrada y la torre para el nivel 2
 *Pre: -
 *Post: Entrada y torre (principio y fin del camino) asignados
 */
@@ -154,7 +154,7 @@ void asignar_entradas_torres_nvl_3 (campo_t* campo){
 	campo->torre_2.col = rand()%9 + 10;
 }
 /*
-*Análsis: Asigna la posicion de la entrada y la torre para el nivel 4 
+*Análsis: Asigna la posicion de la entrada y la torre para el nivel 4
 *Pre: -
 *Post: Entrada y torre (principio y fin del camino) asignados
 */
@@ -182,7 +182,7 @@ bool posicion_valida(coordenada_t posicion, int coordenada_max){
 *Post: Defensor agregado (hasta que se introduzcan bien los datos)
 */
 void pedir_defesores(juego_t* juego, char defensor[MAX_LETRAS_DEFENSOR], char tipo, int cantidad_min, int coordenada_max){
-	
+
 	coordenada_t posicion;
 
 	for (int i = 0; i < cantidad_min; ++i){
@@ -228,7 +228,7 @@ void asignar_defensores(juego_t* juego, campo_t campo){
 *Análsis: Determina si corresponde una bonificación de defensor extra
 *Pre: Nivel inicializado
 *Post: Devuelve verdadero si debe tener un defensor extra.
-*/	
+*/
 bool hay_bonificacion(juego_t juego, campo_t campo){
 	if ((juego.nivel.tope_enemigos!=juego.nivel.max_enemigos_nivel)&&(((juego.nivel.tope_enemigos)%(campo.bonificacion)) == 0)){
 		return true;
@@ -264,7 +264,7 @@ void preguntar_tipo (char* tipo){
 }
 /*
 *Análsis: Pregunta por un defensor extra según el nivel que corresponda (tipo y periodicidad)
-*Pre: el nivel_actual del juego debe ser 1,2,3 o 4 y deben estar inicializados 
+*Pre: el nivel_actual del juego debe ser 1,2,3 o 4 y deben estar inicializados
 *Post: Interacciona con el usuario y agrega o no un defensor según corresponda
 */
 void preguntar_por_def_extra(juego_t* juego, campo_t campo){
@@ -275,7 +275,7 @@ void preguntar_por_def_extra(juego_t* juego, campo_t campo){
 		printf("¿Desea agregar un %s extra? (costo: 50 salud de torre)(%c/%c):", defensor, SI, NO);
 		scanf(" %c", &desicion);
 		if (desicion==SI){
-			agregar_def_extra(juego, ENANO, defensor, campo.tope);		
+			agregar_def_extra(juego, ENANO, defensor, campo.tope);
 			system("clear");
 		}
 	}else if ((juego->nivel_actual==2) && (juego->torres.elfos_extra > 0)){
@@ -302,7 +302,7 @@ void preguntar_por_def_extra(juego_t* juego, campo_t campo){
 					}else if ((tipo==ELFO)&&(juego->torres.elfos_extra > 0)){
 						strcpy(defensor, "ELFO");
 						agregar_def_extra(juego, ELFO, defensor, campo.tope);
-						agrego_correctamente=true;	
+						agrego_correctamente=true;
 					}else{
 						printf(" EL TIPO DE DEFENSOR NO ES CORRECTO, intente nuevamente...\n");
 					}
@@ -320,11 +320,11 @@ void preguntar_por_def_extra(juego_t* juego, campo_t campo){
 */
 void inicializar_nivel(juego_t* juego, campo_t* campo){
 	nivel_t nivel_1;
-	nivel_t nivel_2;	
+	nivel_t nivel_2;
 	nivel_t nivel_3;
 	nivel_t nivel_4;
 
-	switch (juego->nivel_actual){	
+	switch (juego->nivel_actual){
 		case 1:
 			nivel_1.tope_enemigos=0;
 			nivel_1.tope_defensores=0;
@@ -344,7 +344,7 @@ void inicializar_nivel(juego_t* juego, campo_t* campo){
 			nivel_2.tope_enemigos = 0;
 			nivel_2.tope_defensores = 0;
 			campo -> tope = TOPE_CAMPO_1;
-			asignar_entrada_torre_nvl_2 (campo);			
+			asignar_entrada_torre_nvl_2 (campo);
 			obtener_camino(nivel_2.camino_2, &nivel_2.tope_camino_2, campo->entrada_2, campo->torre_2);
 			juego -> nivel = nivel_2;
 			campo->cantidad_enanos = 0;
@@ -355,7 +355,7 @@ void inicializar_nivel(juego_t* juego, campo_t* campo){
 			asignar_defensores(juego, *campo);
 		break;
 
-		case 3:	
+		case 3:
 			nivel_3.tope_enemigos = 0;
 			nivel_3.tope_defensores = 0;
 			campo -> tope = TOPE_CAMPO_2;
@@ -406,25 +406,25 @@ int main (){
 
 	inicializar_juego(&juego, viento, humedad, animo_legolas, animo_gimli);
 	inicializar_nivel(&juego, &campo);
-	
+
 	while(estado_juego(juego) == JUGANDO){
 
-		if (estado_nivel(juego.nivel) == GANADO){  
+		if (estado_nivel(juego.nivel) == GANADO){
 			mostar_nvl_ganado(juego);
 			juego.nivel_actual++;
 			inicializar_nivel(&juego, &campo);
 		}
 		jugar_turno(&juego);
 		mostrar_campo(juego);
-		if (hay_bonificacion(juego, campo)){ 
+		if (hay_bonificacion(juego, campo)){
 			mostrar_juego(juego);
 			preguntar_por_def_extra(&juego, campo);
-			mostrar_campo(juego); 
+			mostrar_campo(juego);
 		}
 	}
 	if (estado_juego(juego) == GANADO)
 		mostrar_juego_ganado();
-	else if (estado_juego(juego) == PERDIDO)		
+	else if (estado_juego(juego) == PERDIDO)
 		mostrar_juego_perdido();
 
 	return 0;

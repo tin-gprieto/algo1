@@ -10,10 +10,8 @@ const int VELOCIDAD_BAJA = 25;
 const int HUMEDAD_ALTA = 75;
 const int HUMEDAD_MEDIA = 50;
 const int HUMEDAD_BAJA = 25;
-const int SALUD_TORRES = 600;
 const int VIDA_ORCO = 200;
 const int VIDA_EXTRA_MAX = 100;
-const int UNIDADES_EXTRA = 10;
 const int CRITICO_MALO = 0;
 const int CRITICO_REGULAR = 10;
 const int CRITICO_BUENO = 25;
@@ -21,6 +19,7 @@ const int ATAQUE_ENANO = 60;
 const int ATAQUE_CRITICO_G =100;
 const int ATAQUE_ELFO = 30;
 const int ATAQUE_CRITICO_L = 70;
+const int INICIO = 0;
 const char MALO = 'M';
 const char REGULAR = 'R';
 const char BUENO = 'B';
@@ -41,18 +40,18 @@ const char TORRE = 'T';
 #define PERDIDO -1
 #define MAX_CAMPO_FILA 20
 #define MAX_CAMPO_COLUMNA 20
-#define MAX_A_PEGAR 30 
+#define MAX_A_PEGAR 30
 /*
 *Análsis: Obtiene el fallo según la magnitud que corresponda (Humedad para los enanos y viento para los elfos)
 *Pre: Valor de la magnitud según corresponda //25, 50, 75
-*Post: Valor del fallo 
+*Post: Valor del fallo
 */
 int fallo_asignado(int magnitud){
-	return magnitud/ 2; 
+	return magnitud/ 2;
 }
 /*
 *Análsis: Obtiene el critico según ánimo que corresponda (el de Gimli para los enanos y el de Légolas para los elfos)
-*Pre: el animo del héroe debe ser BUENO ('B'), REGULAR('R') o MALO('M') 
+*Pre: el animo del héroe debe ser BUENO ('B'), REGULAR('R') o MALO('M')
 *Post: Valor del crítico //0, 10, 25
 */
 int critico_asignado(char animo){
@@ -69,11 +68,11 @@ int critico_asignado(char animo){
 *Pre: -
 *Post: Valores de resistencia_torre_1, resistencia_torre_2, enanos_extra y elfos_extra
 */
-void inicializar_torre(juego_t* juego){
-	juego -> torres.resistencia_torre_1 = SALUD_TORRES;
-	juego -> torres.resistencia_torre_2 = SALUD_TORRES;
-	juego -> torres.enanos_extra = UNIDADES_EXTRA;
-	juego -> torres.elfos_extra= UNIDADES_EXTRA;
+void inicializar_torre(juego_t* juego, configuracion_t config){
+	juego -> torres.resistencia_torre_1 = config.juego.torres.resistencia_torre_1;
+	juego -> torres.resistencia_torre_2 = config.juego.torres.resistencia_torre_2;
+	juego -> torres.enanos_extra = config.juego.torres.enanos_extra;
+	juego -> torres.elfos_extra= config.juego.torres.elfos_extra;
 }
 /*
 *Análsis: Recibe la salud de las torres y devuelve su estado
@@ -90,13 +89,13 @@ bool estan_bien_las_torres (juego_t juego){
 */
 void asignar_fondo_en_campo(juego_t juego, int tope_campo, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMPO_COLUMNA]){
 	for (int i=0; i < tope_campo; i++){
-		for (int j=0; j < tope_campo; j++){		
+		for (int j=0; j < tope_campo; j++){
 			campo_de_batalla[i][j]=FONDO;
 		}
 	}
 }
 /*
-*Análsis: Recorre el camino y asigna cada posicion al campo 
+*Análsis: Recorre el camino y asigna cada posicion al campo
 *Pre: tope_camino correspondiente para el camino en cuestion
 *Post: camino asignado al campo con su entrada y torre
 */
@@ -120,7 +119,7 @@ void asignar_defensores_en_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_
 		if (juego.nivel.defensores[i].tipo == ELFO)
 			campo_de_batalla[juego.nivel.defensores[i].posicion.fil][juego.nivel.defensores[i].posicion.col] = ELFO;
 		if (juego.nivel.defensores[i].tipo == ENANO)
-			campo_de_batalla[juego.nivel.defensores[i].posicion.fil][juego.nivel.defensores[i].posicion.col] = ENANO;	
+			campo_de_batalla[juego.nivel.defensores[i].posicion.fil][juego.nivel.defensores[i].posicion.col] = ENANO;
 	}
 }
 /*
@@ -136,8 +135,8 @@ void asignar_enemigos(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_C
 			}else if(juego.nivel.enemigos[i].camino==2)
 				campo_de_batalla[juego.nivel.camino_2[juego.nivel.enemigos[i].pos_en_camino].fil][juego.nivel.camino_2[juego.nivel.enemigos[i].pos_en_camino].col]= ORCO;
 		}
-	}	
-		
+	}
+
 }
 /*
 *Análsis: Mueve a todos los orcos según el camino en el que estén y si están en la torre hacen daño
@@ -158,18 +157,18 @@ void mover_orcos(juego_t* juego){
 					juego->torres.resistencia_torre_2= juego->torres.resistencia_torre_2 - juego->nivel.enemigos[i].vida;
 					juego->nivel.enemigos[i].vida = 0;
 				}
-			}	
+			}
 		}
 	}
-	
+
 
 }
 /*
-*Imprime por pantalla los valores del juego y el tablero del campo 
+*Imprime por pantalla los valores del juego y el tablero del campo
 */
 void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMPO_COLUMNA], int tope_campo){
-	int salud_torre_1 = juego.torres.resistencia_torre_1; 
-	int salud_torre_2 = juego.torres.resistencia_torre_2; 
+	int salud_torre_1 = juego.torres.resistencia_torre_1;
+	int salud_torre_2 = juego.torres.resistencia_torre_2;
 	int enanos_extra = juego.torres.enanos_extra;
 	int elfos_extra = juego.torres.elfos_extra;
 	int enemigos = juego.nivel.tope_enemigos;
@@ -177,26 +176,26 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 	int critico_elfos = juego.critico_legolas;
 	int fallo_enanos = juego.fallo_gimli;
 	int fallo_elfos = juego.fallo_legolas;
-	
+
 	printf("........................NIVEL %i......................... \n\n", juego.nivel_actual);
-	if(juego.nivel_actual==1){ 
+	if(juego.nivel_actual==1){
 		printf("SALUD TORRE 1: %i     ENEMIGOS RESTANTES: %i / %i \n", salud_torre_1, ORCOS_NVL_1 - enemigos, ORCOS_NVL_1);
-		printf("CRÍTICO:  %i °/.       FALLO: %i  °/. \n", critico_enanos, fallo_enanos);	
+		printf("CRÍTICO:  %i °/.       FALLO: %i  °/. \n", critico_enanos, fallo_enanos);
 	}
 	if(juego.nivel_actual==2){
 		printf("SALUD TORRE 2: %i     ENEMIGOS RESTANTES: %i / %i \n", salud_torre_2, ORCOS_NVL_2 - enemigos, ORCOS_NVL_2);
-		printf("CRÍTICO:  %i °/.       FALLO: %i  °/. \n", critico_elfos, fallo_elfos);	
+		printf("CRÍTICO:  %i °/.       FALLO: %i  °/. \n", critico_elfos, fallo_elfos);
 	}
-	if(juego.nivel_actual == 3){ 
+	if(juego.nivel_actual == 3){
 		printf("SALUD TORRE 1: %i     SALUD TORRE 2: %i    ENEMIGOS RESTANTES: %i / %i \n", salud_torre_1, salud_torre_2, ORCOS_NVL_3 - enemigos, ORCOS_NVL_3);
 		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ENANO, critico_enanos, ENANO, fallo_enanos);
-		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ELFO, critico_elfos, ELFO, fallo_elfos);	
+		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ELFO, critico_elfos, ELFO, fallo_elfos);
 	}
 	if(juego.nivel_actual == 4){
 		printf("SALUD TORRE 1: %i     SALUD TORRE 2: %i    ENEMIGOS RESTANTES: %i / %i \n", salud_torre_1, salud_torre_2, ORCOS_NVL_4 - enemigos, ORCOS_NVL_4);
 		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ENANO, critico_enanos, ENANO, fallo_enanos);
 		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ELFO, critico_elfos, ELFO, fallo_elfos);
-	}		
+	}
 	printf("ENANOS EXTRA:  %i      ELFOS EXTRA: %i  \n", enanos_extra, elfos_extra);
 	if((juego.nivel_actual==1)||(juego.nivel_actual==2)){
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
@@ -204,7 +203,7 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 	}
 	if((juego.nivel_actual == 3)||(juego.nivel_actual == 4)){
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
-		printf("==-|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");	
+		printf("==-|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
 	}
 
 		for (int i=0; i < tope_campo; i++){
@@ -218,7 +217,7 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 			if (i>=10)
 					printf("||%i||\n", i);
 				else
-					printf("||0%i||\n", i);		
+					printf("||0%i||\n", i);
 		}
 
 	if((juego.nivel_actual==1)||(juego.nivel_actual==2)){
@@ -227,7 +226,7 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 	}
 	if ((juego.nivel_actual == 3)||(juego.nivel_actual == 4)){
 		printf("==-|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
-		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");	
+		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
 	}
 }
 /*
@@ -289,12 +288,12 @@ void inicializar_defensor(nivel_t* nivel, coordenada_t posicion, char tipo){
 		defensor.fuerza_ataque = ATAQUE_ENANO;
 	}else if (tipo == ELFO){
 		defensor.fuerza_ataque = ATAQUE_ELFO;
-	} 
+	}
 	nivel->defensores[nivel->tope_defensores]=defensor;
 	nivel->tope_defensores ++;
 }
 /*
-*Análsis: Según un número aleatorio del 0 al 100 determina si hay fallo 
+*Análsis: Según un número aleatorio del 0 al 100 determina si hay fallo
 *Pre: Juego inicializado
 *Post: Verdadero si para este caso hay fallo
 */
@@ -377,13 +376,13 @@ void atacar_con_enanos_campo_1(juego_t* juego, coordenada_t camino[MAX_LONGITUD_
 							juego->nivel.enemigos[j].vida -= ATAQUE_CRITICO_G;
 							dio_golpe=true;
 						}else{
-							juego->nivel.enemigos[j].vida -= ATAQUE_ENANO;			
+							juego->nivel.enemigos[j].vida -= ATAQUE_ENANO;
 							dio_golpe=true;
 						}
 					}
 				}
 				j++;
-			}	
+			}
 		}
 	}
 }
@@ -404,7 +403,7 @@ void atacar_con_enanos_campo_2(juego_t* juego){
 							juego->nivel.enemigos[j].vida -= ATAQUE_CRITICO_G;
 							dio_golpe_1=true;
 						}else{
-							juego->nivel.enemigos[j].vida -= ATAQUE_ENANO;			
+							juego->nivel.enemigos[j].vida -= ATAQUE_ENANO;
 							dio_golpe_1=true;
 						}
 					}
@@ -420,13 +419,13 @@ void atacar_con_enanos_campo_2(juego_t* juego){
 							juego->nivel.enemigos[k].vida -= ATAQUE_CRITICO_G;
 							dio_golpe_2=true;
 						}else{
-							juego->nivel.enemigos[k].vida -= ATAQUE_ENANO;			
+							juego->nivel.enemigos[k].vida -= ATAQUE_ENANO;
 							dio_golpe_2=true;
 						}
 					}
 				}
 				k+=2;
-			}		
+			}
 		}
 	}
 }
@@ -458,11 +457,11 @@ void atacar_con_elfos_campo_1(juego_t* juego, coordenada_t camino[MAX_LONGITUD_C
 						if (tiene_critico(juego->critico_legolas)){
 							juego->nivel.enemigos[j].vida -= ATAQUE_CRITICO_L;
 						}else{
-							juego->nivel.enemigos[j].vida -= ATAQUE_ELFO;			
+							juego->nivel.enemigos[j].vida -= ATAQUE_ELFO;
 						}
 					}
 				}
-			}	
+			}
 		}
 	}
 }
@@ -480,7 +479,7 @@ void atacar_con_elfos_campo_2(juego_t* juego){
 						if (tiene_critico(juego->critico_legolas)){
 							juego->nivel.enemigos[j].vida -= ATAQUE_CRITICO_L;
 						}else{
-							juego->nivel.enemigos[j].vida -= ATAQUE_ELFO;			
+							juego->nivel.enemigos[j].vida -= ATAQUE_ELFO;
 						}
 					}
 				}
@@ -491,11 +490,11 @@ void atacar_con_elfos_campo_2(juego_t* juego){
 						if (tiene_critico(juego->critico_legolas)){
 							juego->nivel.enemigos[k].vida -= ATAQUE_CRITICO_L;
 						}else{
-							juego->nivel.enemigos[k].vida -= ATAQUE_ELFO;			
+							juego->nivel.enemigos[k].vida -= ATAQUE_ELFO;
 						}
 					}
 				}
-			}	
+			}
 		}
 	}
 }
@@ -528,13 +527,21 @@ void agregar_orco(juego_t* juego){
 		}
 	}
 }
-void inicializar_juego(juego_t* juego, int viento, int humedad, char animo_legolas, char animo_gimli){	
+void inicializar_juego(juego_t* juego, configuracion_t config){
+
+	/*
+	int viento, int humedad, char animo_legolas, char animo_gimli,
 	juego -> fallo_legolas = fallo_asignado(viento);
 	juego -> fallo_gimli = fallo_asignado(humedad);
 	juego -> critico_legolas = critico_asignado(animo_legolas);
 	juego -> critico_gimli = critico_asignado(animo_gimli);
-	inicializar_torre(&*juego);
-	juego -> nivel_actual= 1;
+	*/
+	juego -> critico_legolas = config.juego.critico_legolas;
+	juego -> critico_gimli = config.juego.critico_gimli;
+	juego -> fallo_legolas = config.juego.fallo_legolas;
+	juego -> fallo_gimli = config.juego.fallo_gimli;
+	inicializar_torre(&*juego, config);
+	juego -> nivel_actual= INICIO;
 }
 int estado_juego(juego_t juego){
 	if (!estan_bien_las_torres(juego))
@@ -559,7 +566,7 @@ int agregar_defensor(nivel_t* nivel, coordenada_t posicion, char tipo){
 	if (!posicion_valida_defensores(nivel->defensores, nivel->tope_defensores, posicion))
 		return -1;
 	inicializar_defensor(nivel, posicion, tipo);
-	return 0;	
+	return 0;
 }
 void jugar_turno(juego_t* juego){
 	switch(juego->nivel_actual){
@@ -586,13 +593,13 @@ void jugar_turno(juego_t* juego){
 		agregar_orco(juego);
 		break;
 	}
-}		
+}
 void mostrar_juego(juego_t juego){
 	char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMPO_COLUMNA];
 	int tope_campo;
 	int tope_camino_1 = juego.nivel.tope_camino_1;
 	int tope_camino_2 = juego.nivel.tope_camino_2;
-	
+
 	switch (juego.nivel_actual){
 		case 1:
 			tope_campo = 15;
