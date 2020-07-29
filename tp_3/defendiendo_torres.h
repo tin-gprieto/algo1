@@ -64,12 +64,17 @@ typedef struct juego {
 } juego_t;
 
 typedef struct configuracion {
-	juego_t juego;
+	torres_t torres;
+	int viento;
+	int humedad;
+	char animo_gimli;
+	char animo_legolas;
 	int costo_L_extra[MAX_TORRES];
 	int costo_G_extra[MAX_TORRES];
 	int cantidad_enanos[MAX_NIVELES];
 	int cantidad_elfos[MAX_NIVELES];
 	bool es_aleatoreo[MAX_NIVELES];
+	char ruta_camino[MAX_RUTA];
 	float velocidad;
 } configuracion_t;
 /*

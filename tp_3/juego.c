@@ -67,7 +67,7 @@ typedef struct estructura{
 void mostrar_inicio(){
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
   printf("     ________                                                ________ \n");
-	printf("    (o.____.o)____        `-                   -'       ____(o.____.o)\n");
+	printf("    (o.____.o)____                                      ____(o.____.o)\n");
 	printf("      |    | /,--.                                     (,--.  |    |\n");
   printf("      |    |((  -` ___                               ___`   ))|    |\n");
 	printf("      |    | || ,'',  `.                           .'  .``.// |    |\n");
@@ -98,7 +98,7 @@ void mostar_nvl_ganado(juego_t juego){
 	system("clear");
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n\n\n\n\n\n\n");
 	printf("                        -------------------\n");
-	printf("                        NIVEL %i COMPLETADO\n", juego.nivel_actual);
+	printf("                        NIVEL %i COMPLETADO\n", (juego.nivel_actual+1));
 	printf("                        -------------------\n\n\n\n\n\n\n\n\n");
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
 	detener_el_tiempo(2);
@@ -267,20 +267,13 @@ void agregar_def_extra(juego_t* juego, campo_t campo, char tipo, char defensor[M
 			if(juego->nivel_actual==NIVEL_1){
 				juego->torres.resistencia_torre_1 -= campo.costo_G_extra[TORRE_1];
 				juego->torres.enanos_extra --;
-			}else if(juego->nivel_actual==NIVEL_2){
-				juego->torres.resistencia_torre_2 -= campo.costo_G_extra[TORRE_2];
-				juego->torres.enanos_extra --;
 			}else if(juego->nivel_actual==NIVEL_3 || juego->nivel_actual==NIVEL_4 ){
 				juego->torres.resistencia_torre_1 -= campo.costo_G_extra[TORRE_1];
 				juego->torres.resistencia_torre_2 -= campo.costo_G_extra[TORRE_2];
 				juego->torres.enanos_extra --;
 			}
 		}else if (tipo == ELFO){
-			if(juego->nivel_actual==NIVEL_1){
-				juego->torres.resistencia_torre_1 -= campo.costo_L_extra[TORRE_1];
-				juego->torres.resistencia_torre_2 -= campo.costo_L_extra[TORRE_2];
-				juego->torres.elfos_extra --;
-			}else if(juego->nivel_actual==NIVEL_2){
+			if(juego->nivel_actual==NIVEL_2){
 				juego->torres.resistencia_torre_2 -= campo.costo_L_extra[TORRE_2];
 				juego->torres.elfos_extra --;
 			}else if(juego->nivel_actual==NIVEL_3 || juego->nivel_actual==NIVEL_4 ){
@@ -302,14 +295,20 @@ void preguntar_tipo (char* tipo){
 	*tipo=eleccion;
 }
 /*
+*Análsis
+*Pre:
+*Post:
+*/
+void preguntar_por_def_extra()
+/*
 *Análsis: Pregunta por un defensor extra según el nivel que corresponda (tipo y periodicidad)
 *Pre: el nivel_actual del juego debe ser 1,2,3 o 4 y deben estar inicializados
 *Post: Interacciona con el usuario y agrega o no un defensor según corresponda
 */
-void preguntar_por_def_extra(juego_t* juego, campo_t campo){
+void bonificar_con_defesor(juego_t* juego, campo_t campo){
 	char desicion;
 	char defensor[MAX_LETRAS_DEFENSOR];
-	if ((juego->nivel_actual==1)&&(juego->torres.enanos_extra > 0)){
+	if ((juego->nivel_actual==NIVEL_1)&&(juego->torres.enanos_extra > 0)){
 		strcpy(defensor, "ENANO");
 		printf("¿Desea agregar un %s extra? (costo: 50 salud de torre)(%c/%c):", defensor, SI, NO);
 		scanf(" %c", &desicion);
@@ -317,7 +316,7 @@ void preguntar_por_def_extra(juego_t* juego, campo_t campo){
 			agregar_def_extra(juego, campo, ENANO, defensor, campo.tope);
 			system("clear");
 		}
-	}else if ((juego->nivel_actual==2) && (juego->torres.elfos_extra > 0)){
+	}else if ((juego->nivel_actual==NIVEL_2) && (juego->torres.elfos_extra > 0)){
 		strcpy(defensor, "ELFO");
 		printf("¿Desea agregar un %s extra? (costo: 50 salud de torre)(%c/%c):", defensor, SI, NO);
 		scanf(" %c", &desicion);
@@ -325,7 +324,7 @@ void preguntar_por_def_extra(juego_t* juego, campo_t campo){
 			agregar_def_extra(juego, campo, ELFO, defensor, campo.tope);
 			system("clear");
 		}
-	}else if ((juego->nivel_actual==3) || (juego->nivel_actual==4)){
+	}else if ((juego->nivel_actual==NIVEL_3) || (juego->nivel_actual==NIVEL_4)){
 		if ((juego->torres.enanos_extra > 0) || (juego->torres.elfos_extra > 0)){
 			char tipo;
 			printf("¿Desea agregar un defensor extra? (costo: 50 salud de torre)(%c/%c):", SI, NO);
@@ -411,39 +410,25 @@ void configurar_campo(int nivel, campo_t* campo, configuracion_t config){
 *
 *
 */
-void configurar_nivel(int nivel, estructura_t* estructura, configuracion_t config){
-	campo_t campo_aux;
-	configurar_campo(nivel, &campo_aux, config);
-	estructura->campo=campo_aux;
-
-	if (config.es_aleatoreo[nivel]){
-		nivel_t nivel_aux;
-		configurar_camino_aleatorio(nivel ,&nivel_aux, &campo_aux);
-		estructura->nivel=nivel_aux;
-		estructura->campo=campo_aux;
-	}
-
-	estructura->nivel.tope_enemigos=0;
-	estructura->nivel.tope_defensores=0;
-
-	if (nivel==NIVEL_1){
-		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_1;
-	}else if (nivel==NIVEL_2){
-		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_2;
-	}else if (nivel==NIVEL_3){
-		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_3;
-	}else if (nivel==NIVEL_4){
-		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_4;
-	}
-}
-/*
-*
-*
-*
-*/
 void inicializar_niveles(estructura_t estructura[MAX_NIVELES], configuracion_t config){
-	for (int i=NIVEL_1; i<MAX_NIVELES; i++){
-		configurar_nivel(i, &estructura[i], config);
+	for (int nivel=NIVEL_1; nivel<MAX_NIVELES; nivel++){
+		estructura[nivel].nivel.tope_enemigos=0;
+		estructura[nivel].nivel.tope_defensores=0;
+		campo_t campo_aux;
+		nivel_t nivel_aux;
+		configurar_campo(nivel, &campo_aux, config);
+		configurar_camino_aleatorio(nivel ,&nivel_aux, &campo_aux);
+		estructura[nivel].nivel=nivel_aux;
+		estructura[nivel].campo=campo_aux;
+		if (nivel==NIVEL_1){
+			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_1;
+		}else if (nivel==NIVEL_2){
+			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_2;
+		}else if (nivel==NIVEL_3){
+			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_3;
+		}else if (nivel==NIVEL_4){
+			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_4;
+		}
 	}
 }
 /*
@@ -463,18 +448,19 @@ void cargar_nivel(juego_t* juego, estructura_t estructura){
 void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], configuracion_t config){
 
 }
-/*
 *
 *
 *
 */
 void configurar_por_defecto(configuracion_t* configuracion){
-	configuracion->juego.critico_legolas=25;
-	configuracion->juego.critico_gimli=25;
-	configuracion->juego.fallo_legolas=25;
-	configuracion->juego.fallo_gimli=25;
-	configuracion->juego.torres.resistencia_torre_1=SALUD_TORRES;
-	configuracion->juego.torres.resistencia_torre_2=SALUD_TORRES;
+	configuracion->animo_legolas='B';
+	configuracion->animo_gimli='B';
+	configuracion->viento=25;
+	configuracion->humedad=25;
+	configuracion->torres.resistencia_torre_1=SALUD_TORRES;
+	configuracion->torres.resistencia_torre_2=SALUD_TORRES;
+	configuracion->torres.enanos_extra=10;
+	configuracion->torres.elfos_extra=10;
 	configuracion->costo_G_extra[TORRE_1]=COSTO_BONIFICACION;
 	configuracion->costo_G_extra[TORRE_2]=COSTO_BONIFICACION;
 	configuracion->costo_L_extra[TORRE_1]=COSTO_BONIFICACION;
@@ -497,29 +483,30 @@ int main (int argc, char* argv[]){
 	srand((unsigned)time(NULL));
 
 	juego_t juego;
-	estructura_t estructura_niveles[MAX_NIVELES];
+	estructura_t estructura[MAX_NIVELES];
 	configuracion_t configuracion;
 
 	configurar_por_defecto(&configuracion);
 	inicializar_juego(&juego, configuracion);
-	inicializar_niveles(&estructura_niveles[MAX_NIVELES], configuracion);
+	inicializar_niveles(estructura, configuracion);
 
 	mostrar_inicio();
 	system("clear");
 
+	cargar_nivel(&juego, estructura[juego.nivel_actual]);
+
 	while(estado_juego(juego) == JUGANDO){
 		if (estado_nivel(juego.nivel) == GANADO){
-			mostar_nvl_ganado(&juego);
+			mostar_nvl_ganado(juego);
 			juego.nivel_actual++;
-			cargar_nivel(juego, estructura[juego.nivel_actual]);
+			cargar_nivel(&juego, estructura[juego.nivel_actual]);
 		}
-		int nivel=juego->nivel_actual;
-		jugar_turno(juego);
-		mostrar_campo(&juego, config.velocidad);
-		if (hay_bonificacion(&juego, estructura[nivel].campo)){
-			mostrar_juego(&juego);
-			preguntar_por_def_extra(juego, estructura[nivel].campo);
-			mostrar_campo(&juego, config.velocidad);
+		jugar_turno(&juego);
+		mostrar_campo(juego, configuracion.velocidad);
+		if (hay_bonificacion(juego, estructura[juego.nivel_actual].campo)){
+			mostrar_juego(juego);
+			bonificar_con_defesor(&juego, estructura[juego.nivel_actual].campo);
+			mostrar_campo(juego, configuracion.velocidad);
 		}
 	}
 	if (estado_juego(juego) == GANADO)

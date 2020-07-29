@@ -174,7 +174,7 @@ void asignar_entradas_torres_nvl_4 (campo_t* campo){
 *Post: Verdadero si la posicion no exede los límites del campo
 */
 bool posicion_valida(coordenada_t posicion, int coordenada_max){
-	return (posicion.fil < coordenada_max) && (posicion.col < coordenada_max)
+	return (posicion.fil < coordenada_max) && (posicion.col < coordenada_max);
 }
 /*
 *Análsis: Pregunta al usuario la posicion del defensor y lo agrega si su posicion es válida (No excede las dimensiones del campo ni coincide con otro defensor)
@@ -205,7 +205,6 @@ void pedir_defesores(juego_t* juego, char defensor[MAX_LETRAS_DEFENSOR], char ti
 			system("clear");
 			mostrar_juego(*juego);
 		}
-	}
 }
 /*
 *Análsis: Según los defensores del nivel los asigna en el campo
