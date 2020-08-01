@@ -65,10 +65,10 @@ typedef struct juego {
 
 typedef struct configuracion {
 	torres_t torres;
-	int viento;
-	int humedad;
-	char animo_gimli;
-	char animo_legolas;
+	int fallo_gimli;
+	int fallo_legolas;
+	int critico_gimli;
+	int critico_legolas;
 	int costo_L_extra[MAX_TORRES];
 	int costo_G_extra[MAX_TORRES];
 	int cantidad_enanos[MAX_NIVELES];

@@ -7,6 +7,11 @@
 #include "utiles.h"
 #include "argumentos.h"
 
+#define MAX_LETRAS_DEFENSOR 15
+#define MAX_NIVELES 4
+#define MAX_TORRES 2
+#define MAX_USUARIO 20
+
 const int TOPE_CAMPO_1=15;
 const int TOPE_CAMPO_2=20;
 const int NIVEL_1=0;
@@ -38,9 +43,7 @@ const int COSTO_BONIFICACION=50;
 const int EXTRA_1=25;
 const int EXTRA_2=50;
 
-#define MAX_LETRAS_DEFENSOR 15
-#define MAX_NIVELES 4
-#define MAX_TORRES 2
+const char SEPARADO[MAX_TORRES]="=";
 
 typedef struct campo{
 	int tope;
@@ -299,7 +302,9 @@ void preguntar_tipo (char* tipo){
 *Pre:
 *Post:
 */
-void preguntar_por_def_extra()
+void preguntar_por_def_extra(){
+
+}
 /*
 *Análsis: Pregunta por un defensor extra según el nivel que corresponda (tipo y periodicidad)
 *Pre: el nivel_actual del juego debe ser 1,2,3 o 4 y deben estar inicializados
@@ -445,18 +450,12 @@ void cargar_nivel(juego_t* juego, estructura_t estructura){
 *
 *
 *
-void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], configuracion_t config){
-
-}
-*
-*
-*
 */
 void configurar_por_defecto(configuracion_t* configuracion){
-	configuracion->animo_legolas='B';
-	configuracion->animo_gimli='B';
-	configuracion->viento=25;
-	configuracion->humedad=25;
+	configuracion->critico_legolas=25;
+	configuracion->critico_gimli=25;
+	configuracion->fallo_legolas=10;
+	configuracion->fallo_gimli=10;
 	configuracion->torres.resistencia_torre_1=SALUD_TORRES;
 	configuracion->torres.resistencia_torre_2=SALUD_TORRES;
 	configuracion->torres.enanos_extra=10;
@@ -479,40 +478,77 @@ void configurar_por_defecto(configuracion_t* configuracion){
 	configuracion->es_aleatoreo[NIVEL_4]=true;
 	configuracion->velocidad=0.5;
 }
+/*
+*
+*
+*
+*/
+void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], configuracion_t configuracion){
+	if (estado_nivel(juego->nivel) == GANADO){
+		mostar_nvl_ganado(*juego);
+		juego->nivel_actual++;
+		cargar_nivel(juego, estructura[juego->nivel_actual]);
+	}
+	jugar_turno(juego);
+	mostrar_campo(*juego, configuracion.velocidad);
+	if (hay_bonificacion(*juego, estructura[juego->nivel_actual].campo)){
+		mostrar_juego(*juego);
+		bonificar_con_defesor(juego, estructura[juego->nivel_actual].campo);
+		mostrar_campo(*juego, configuracion.velocidad);
+	}
+}
+/*
+*
+*
+*
+*/
+void pedir_nombre(char usuario[MAX_USUARIO]){
+	printf("Introduzca su nombre: ");
+	scanf("%[^\n]", usuario);
+}
+/*
+*
+*
+*
+*/
+void configurar_juego(juego_t* juego, configuracion_t configuracion, estructura_t estructura[], char usuario[]) {
+	inicializar_juego(juego, configuracion);
+	inicializar_niveles(estructura, configuracion);
+	mostrar_inicio(usuario);
+	pedir_nombre(usuario);
+	system("clear");
+	cargar_nivel(juego, estructura[juego->nivel_actual]);
+}
 int main (int argc, char* argv[]){
 	srand((unsigned)time(NULL));
+	if (argc>1){
+		configuracion_t configuracion;
+		int programa=estado_programa(argv[1]);
 
-	juego_t juego;
-	estructura_t estructura[MAX_NIVELES];
-	configuracion_t configuracion;
-
-	configurar_por_defecto(&configuracion);
-	inicializar_juego(&juego, configuracion);
-	inicializar_niveles(estructura, configuracion);
-
-	mostrar_inicio();
-	system("clear");
-
-	cargar_nivel(&juego, estructura[juego.nivel_actual]);
-
-	while(estado_juego(juego) == JUGANDO){
-		if (estado_nivel(juego.nivel) == GANADO){
-			mostar_nvl_ganado(juego);
-			juego.nivel_actual++;
-			cargar_nivel(&juego, estructura[juego.nivel_actual]);
+		if ((programa != JUGAR) && (programa != ERROR)){
+			comandos(programa, argv);
+			return 0;
+		}else if (programa==JUGAR){
+			juego_t juego;
+			estructura_t estructura[MAX_NIVELES];
+			char usuario[MAX_USUARIO];
+			configurar_por_defecto(&configuracion);
+			configurar_juego(&juego, configuracion, estructura, usuario);
+			while(estado_juego(juego) == JUGANDO){
+				printf("Usuario: %s \n", usuario);
+				jugar_turno_completo(&juego, estructura, configuracion);
+			}
+			if (estado_juego(juego) == GANADO){
+				mostrar_juego_ganado();
+			}else if (estado_juego(juego) == PERDIDO)
+				mostrar_juego_perdido();
+			return 0;
+		}else{
+			printf("Hubo un error con los comandos, revisar si se ingresó correctamente.\n");
+			return -1;
 		}
-		jugar_turno(&juego);
-		mostrar_campo(juego, configuracion.velocidad);
-		if (hay_bonificacion(juego, estructura[juego.nivel_actual].campo)){
-			mostrar_juego(juego);
-			bonificar_con_defesor(&juego, estructura[juego.nivel_actual].campo);
-			mostrar_campo(juego, configuracion.velocidad);
-		}
+	}else{
+		printf("No ingresaste ningun comando\n");
+		return -1;
 	}
-	if (estado_juego(juego) == GANADO)
-		mostrar_juego_ganado();
-	else if (estado_juego(juego) == PERDIDO)
-		mostrar_juego_perdido();
-
-	return 0;
 }

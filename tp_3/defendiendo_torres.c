@@ -19,7 +19,6 @@ const int ATAQUE_ENANO = 60;
 const int ATAQUE_CRITICO_G =100;
 const int ATAQUE_ELFO = 30;
 const int ATAQUE_CRITICO_L = 70;
-const int INICIO = 0;
 const char MALO = 'M';
 const char REGULAR = 'R';
 const char BUENO = 'B';
@@ -47,28 +46,7 @@ const char TORRE = 'T';
 #define MAX_CAMPO_FILA 20
 #define MAX_CAMPO_COLUMNA 20
 #define MAX_A_PEGAR 30
-/*
-*Análsis: Obtiene el fallo según la magnitud que corresponda (Humedad para los enanos y viento para los elfos)
-*Pre: Valor de la magnitud según corresponda //25, 50, 75
-*Post: Valor del fallo
-*/
-int fallo_asignado(int magnitud){
-	return magnitud/ 2;
-}
-/*
-*Análsis: Obtiene el critico según ánimo que corresponda (el de Gimli para los enanos y el de Légolas para los elfos)
-*Pre: el animo del héroe debe ser BUENO ('B'), REGULAR('R') o MALO('M')
-*Post: Valor del crítico //0, 10, 25
-*/
-int critico_asignado(char animo){
-	if (animo == MALO){
-		return CRITICO_MALO;
-	}else if(animo == REGULAR){
-		return CRITICO_REGULAR;
-	}else{
-		return CRITICO_BUENO;
-	}
-}
+
 /*
 *Análsis: Establece los valores de resistencia y defensores extra de las torres
 *Pre: -
@@ -534,12 +512,12 @@ void agregar_orco(juego_t* juego){
 	}
 }
 void inicializar_juego(juego_t* juego, configuracion_t config){
-	juego -> fallo_legolas = fallo_asignado(config.viento);
-	juego -> fallo_gimli = fallo_asignado(config.humedad);
-	juego -> critico_legolas = critico_asignado(config.animo_legolas);
-	juego -> critico_gimli = critico_asignado(config.animo_gimli);
+	juego -> fallo_legolas = config.fallo_legolas;
+	juego -> fallo_gimli = config.fallo_gimli;
+	juego -> critico_legolas = config.critico_legolas;
+	juego -> critico_gimli = config.critico_gimli;
 	inicializar_torre(&*juego, config);
-	juego -> nivel_actual= INICIO;
+	juego -> nivel_actual= NIVEL_1;
 }
 int estado_juego(juego_t juego){
 	if (!estan_bien_las_torres(juego))
