@@ -7,25 +7,9 @@
 #include "utiles.h"
 #include "argumentos.h"
 
-#define MAX_LETRAS_DEFENSOR 15
-#define MAX_NIVELES 4
-#define MAX_TORRES 2
-#define MAX_USUARIO 20
-#define MAX_ARGUMENTO 20
-
-#define STANDARD_SIN_GRABAR 0
-#define STANDARD_GRABANDO 1
-#define CUSTOM_SIN_GRABAR 2
-#define CUSTOM_GRABANDO 3
 
 const int TOPE_CAMPO_1=15;
 const int TOPE_CAMPO_2=20;
-const int NIVEL_1=0;
-const int NIVEL_2=1;
-const int NIVEL_3=2;
-const int NIVEL_4=3;
-const int TORRE_1=0;
-const int TORRE_2=1;
 const int GANADO=1;
 const int JUGANDO=0;
 const int PERDIDO=-1;
@@ -69,12 +53,6 @@ typedef struct estructura{
 	nivel_t nivel;
 	campo_t campo;
 } estructura_t;
-
-typedef struct ranking{
-	char usuario[MAX_USUARIO];
-	int puntos;
-} ranking_t;
-
 /*
 *Muestra por pantalla el menú de inicio
 */
@@ -160,7 +138,7 @@ void mostrar_juego_ganado(){
 */
 void mostrar_campo(juego_t juego, float velocidad, ranking_t ranking){
 	printf("USUARIO: %s  \n", ranking.usuario);
-	printf("PUNTAJE: %i \n", ranking.puntos);
+	printf("PUNTAJE: %i           ORCOS MUERTOS: %i\n", ranking.puntos, ranking.orcos_muertos);
 	mostrar_juego(juego);
 	detener_el_tiempo(velocidad);
 	system("clear");
@@ -492,6 +470,8 @@ void configurar_juego(juego_t* juego, configuracion_t configuracion, estructura_
 	inicializar_niveles(estructura, configuracion);
 	printf("Introduzca su nombre: ");
 	scanf("%[^\n]", ranking->usuario);
+	ranking->puntos=0;
+	ranking->orcos_muertos=0;
 	system("clear");
 	cargar_nivel(juego, estructura[juego->nivel_actual]);
 }
@@ -502,7 +482,6 @@ int main (int argc, char* argv[]){
 	juego_t juego;
 	estructura_t estructura[MAX_NIVELES];
 	ranking_t ranking;
-	ranking.puntos=0;
 	char archivo_config[MAX_ARGUMENTO];
 	char archivo_grabacion[MAX_ARGUMENTO];
 
@@ -512,13 +491,14 @@ int main (int argc, char* argv[]){
 			comandos(programa, argv);
 			return 0;
 		}else if (programa==JUGAR){
-			int modo=modo_juego(argc, argv, archivo_config, archivo_grabacion);
+			system("clear");
+			int modo=modo_juego(argv, archivo_config, archivo_grabacion);
 			cargar_confirguracion(&configuracion, modo, archivo_config);
 			mostrar_inicio(archivo_config, archivo_grabacion, configuracion);
 			configurar_juego(&juego, configuracion, estructura, &ranking);
 			while(estado_juego(juego) == JUGANDO){
 				jugar_turno_completo(&juego, estructura, configuracion, ranking);
-				//actualizar_ranking(juego, &puntos, usuario, archivo_config);
+				actualizar_ranking(juego,  configuracion, &ranking, archivo_config);
 				if ((modo == STANDARD_GRABANDO) || (modo == CUSTOM_GRABANDO)){
 					guardar_partida(juego, archivo_grabacion);
 				}

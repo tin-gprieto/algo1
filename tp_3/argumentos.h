@@ -11,12 +11,32 @@
 #define REPETICION 3
 #define RANKING 4
 #define ERROR -1
+#define STANDARD_SIN_GRABAR 0
+#define STANDARD_GRABANDO 1
+#define CUSTOM_SIN_GRABAR 2
+#define CUSTOM_GRABANDO 3
+#define NIVEL_1 0
+#define NIVEL_2 1
+#define NIVEL_3 2
+#define NIVEL_4 3
+#define TORRE_1 0
+#define TORRE_2 1
+#define MAX_LETRAS_DEFENSOR 15
+#define MAX_NIVELES 4
+#define MAX_TORRES 2
+#define MAX_ARGUMENTO 20
+#define MAX_USUARIO 20
 
+typedef struct ranking{
+	char usuario[MAX_USUARIO];
+	int puntos;
+	int orcos_muertos;
+} ranking_t;
 /*
 * NO TERMINADA
 *Analisis: Calcula los puntos y actualiza el archivo del ranking segun la configuracion
 */
-void actualizar_ranking(juego_t juego, int* puntos, char usuario[], char config[]);
+void actualizar_ranking(juego_t juego, configuracion_t configuracion, ranking_t* ranking, char config[]);
 /*
 *NO TERMINADA
 *Analisis: Abre el archivo de caminos y carga su informacion al nivel
