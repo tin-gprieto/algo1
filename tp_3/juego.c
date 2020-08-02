@@ -11,6 +11,12 @@
 #define MAX_NIVELES 4
 #define MAX_TORRES 2
 #define MAX_USUARIO 20
+#define MAX_ARGUMENTO 20
+
+#define STANDARD_SIN_GRABAR 0
+#define STANDARD_GRABANDO 1
+#define CUSTOM_SIN_GRABAR 2
+#define CUSTOM_GRABANDO 3
 
 const int TOPE_CAMPO_1=15;
 const int TOPE_CAMPO_2=20;
@@ -64,10 +70,15 @@ typedef struct estructura{
 	campo_t campo;
 } estructura_t;
 
+typedef struct ranking{
+	char usuario[MAX_USUARIO];
+	int puntos;
+} ranking_t;
+
 /*
 *Muestra por pantalla el menú de inicio
 */
-void mostrar_inicio(){
+void mostrar_inicio(char configuracion[], char grabacion[], configuracion_t config){
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
   printf("     ________                                                ________ \n");
 	printf("    (o.____.o)____                                      ____(o.____.o)\n");
@@ -92,7 +103,18 @@ void mostrar_inicio(){
 	printf("     {______}     |___________________________________|      {______}\n");
 	printf("     |______|________________________________________________|______|\n\n");
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
-	detener_el_tiempo(3);
+	printf("GRABACION: %s\n", grabacion);
+	printf("CONFIGURACION: %s\n", configuracion);
+	printf("-TORRES SALUD: %i %i \n", config.torres.resistencia_torre_1, config.torres.resistencia_torre_2 );
+	printf("-ENANOS_INICIO: %i %i %i %i\n", config.cantidad_enanos[0], config.cantidad_enanos[1], config.cantidad_enanos[2], config.cantidad_enanos[3]);
+	printf("-ELFOS_INICIO: %i %i %i %i\n", config.cantidad_elfos[0], config.cantidad_elfos[1], config.cantidad_elfos[2], config.cantidad_elfos[3]);
+	printf("-ENANOS_EXTRA: %i %i %i\n", config.torres.enanos_extra, config.costo_G_extra[0], config.costo_G_extra[1]);
+	printf("-ELFOS_EXTRA: %i %i %i \n", config.torres.elfos_extra, config.costo_L_extra[0], config.costo_L_extra[1]);
+	printf("-ENANOS_ANIMO: %i %i\n", config.fallo_gimli, config.critico_gimli);
+	printf("-ELFOS_ANIMO: %i %i\n", config.fallo_legolas, config.critico_legolas );
+	printf("-VELOCIDAD: %f \n", config.velocidad);
+	printf("-RUTA CAMINO: %s \n", config.ruta_camino);
+	detener_el_tiempo(2);
 }
 /*
 *Muestra por pantalla el nivel ganado
@@ -136,7 +158,9 @@ void mostrar_juego_ganado(){
 /*
 *Muestra el juego durante un tiempo determinado y luego limpia el sistema
 */
-void mostrar_campo(juego_t juego, float velocidad){
+void mostrar_campo(juego_t juego, float velocidad, ranking_t ranking){
+	printf("USUARIO: %s  \n", ranking.usuario);
+	printf("PUNTAJE: %i \n", ranking.puntos);
 	mostrar_juego(juego);
 	detener_el_tiempo(velocidad);
 	system("clear");
@@ -229,6 +253,7 @@ void pedir_defesores(juego_t* juego, char defensor[MAX_LETRAS_DEFENSOR], char ti
 		system("clear");
 		mostrar_juego(*juego);
 		}
+		system("clear");
 }
 /*
 *Análsis: Según los defensores del nivel los asigna en el campo
@@ -296,14 +321,6 @@ void preguntar_tipo (char* tipo){
 	printf("Introduzca el tipo ('%c' para ELFO o '%c' para ENANO):", ELFO, ENANO);
 	scanf(" %c", &eleccion);
 	*tipo=eleccion;
-}
-/*
-*Análsis
-*Pre:
-*Post:
-*/
-void preguntar_por_def_extra(){
-
 }
 /*
 *Análsis: Pregunta por un defensor extra según el nivel que corresponda (tipo y periodicidad)
@@ -451,6 +468,33 @@ void cargar_nivel(juego_t* juego, estructura_t estructura){
 *
 *
 */
+void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], configuracion_t configuracion, ranking_t ranking){
+	if (estado_nivel(juego->nivel) == GANADO){
+		mostar_nvl_ganado(*juego);
+		juego->nivel_actual++;
+		cargar_nivel(juego, estructura[juego->nivel_actual]);
+	}
+	jugar_turno(juego);
+	mostrar_campo(*juego, configuracion.velocidad, ranking);
+	if (hay_bonificacion(*juego, estructura[juego->nivel_actual].campo)){
+		mostrar_juego(*juego);
+		bonificar_con_defesor(juego, estructura[juego->nivel_actual].campo);
+		mostrar_campo(*juego, configuracion.velocidad, ranking);
+	}
+}
+/*
+*
+*
+*
+*/
+void configurar_juego(juego_t* juego, configuracion_t configuracion, estructura_t estructura[], ranking_t ranking) {
+	inicializar_juego(juego, configuracion);
+	inicializar_niveles(estructura, configuracion);
+	printf("Introduzca su nombre: ");
+	scanf("%[^\n]", ranking.usuario);
+	system("clear");
+	cargar_nivel(juego, estructura[juego->nivel_actual]);
+}
 void configurar_por_defecto(configuracion_t* configuracion){
 	configuracion->critico_legolas=25;
 	configuracion->critico_gimli=25;
@@ -478,65 +522,38 @@ void configurar_por_defecto(configuracion_t* configuracion){
 	configuracion->es_aleatoreo[NIVEL_4]=true;
 	configuracion->velocidad=0.5;
 }
-/*
-*
-*
-*
-*/
-void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], configuracion_t configuracion){
-	if (estado_nivel(juego->nivel) == GANADO){
-		mostar_nvl_ganado(*juego);
-		juego->nivel_actual++;
-		cargar_nivel(juego, estructura[juego->nivel_actual]);
-	}
-	jugar_turno(juego);
-	mostrar_campo(*juego, configuracion.velocidad);
-	if (hay_bonificacion(*juego, estructura[juego->nivel_actual].campo)){
-		mostrar_juego(*juego);
-		bonificar_con_defesor(juego, estructura[juego->nivel_actual].campo);
-		mostrar_campo(*juego, configuracion.velocidad);
-	}
-}
-/*
-*
-*
-*
-*/
-void pedir_nombre(char usuario[MAX_USUARIO]){
-	printf("Introduzca su nombre: ");
-	scanf("%[^\n]", usuario);
-}
-/*
-*
-*
-*
-*/
-void configurar_juego(juego_t* juego, configuracion_t configuracion, estructura_t estructura[], char usuario[]) {
-	inicializar_juego(juego, configuracion);
-	inicializar_niveles(estructura, configuracion);
-	mostrar_inicio(usuario);
-	pedir_nombre(usuario);
-	system("clear");
-	cargar_nivel(juego, estructura[juego->nivel_actual]);
-}
+
 int main (int argc, char* argv[]){
 	srand((unsigned)time(NULL));
-	if (argc>1){
-		configuracion_t configuracion;
-		int programa=estado_programa(argv[1]);
 
+	configuracion_t configuracion;
+	juego_t juego;
+	estructura_t estructura[MAX_NIVELES];
+	ranking_t ranking;
+	ranking.puntos=0;
+	char archivo_config[MAX_ARGUMENTO];
+	char archivo_grabacion[MAX_ARGUMENTO];
+
+	if (argc>1){
+		int programa=estado_programa(argv[1]);
 		if ((programa != JUGAR) && (programa != ERROR)){
 			comandos(programa, argv);
 			return 0;
 		}else if (programa==JUGAR){
-			juego_t juego;
-			estructura_t estructura[MAX_NIVELES];
-			char usuario[MAX_USUARIO];
-			configurar_por_defecto(&configuracion);
-			configurar_juego(&juego, configuracion, estructura, usuario);
+			int modo=modo_juego(argc, argv, archivo_config, archivo_grabacion);
+			//configurar_por_defecto(&configuracion);
+			cargar_confirguracion(&configuracion, modo, archivo_config);
+			mostrar_inicio(archivo_config, archivo_grabacion, configuracion);
+			configurar_juego(&juego, configuracion, estructura, ranking);
 			while(estado_juego(juego) == JUGANDO){
-				printf("Usuario: %s \n", usuario);
-				jugar_turno_completo(&juego, estructura, configuracion);
+				jugar_turno_completo(&juego, estructura, configuracion, ranking);
+				/*
+				actualizar_ranking(juego, &puntos, usuario);
+				*/
+				if ((modo == STANDARD_GRABANDO) || (modo == CUSTOM_GRABANDO)){
+					printf("grabando...\n");
+					guardar_partida(juego, archivo_grabacion);
+				}
 			}
 			if (estado_juego(juego) == GANADO){
 				mostrar_juego_ganado();

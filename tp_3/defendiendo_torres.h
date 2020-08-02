@@ -12,6 +12,7 @@
 #define MAX_RUTA 50
 #define MAX_NIVELES 4
 #define MAX_TORRES 2
+#define MAX_ANIMOS 2
 
 typedef struct coordenada {
 	int fil;

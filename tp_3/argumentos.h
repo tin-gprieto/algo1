@@ -37,17 +37,30 @@ void actualizar_ranking(juego_t juego);
 *
 *
 */
-void guardar_partida(juego_t juego, int tope_arg, char* arg[]);
+void guardar_partida(juego_t juego, char grabacion[]);
 /*
 *
 *
 *
 */
-void cargar_confirguracion(configuracion_t* configuracion, char arg[]);
+void cargar_confirguracion(configuracion_t* configuracion, int modo, char config[]);
+/*
+*
+*
+*
+*/
+void configurar_caminos(configuracion_t configuracion, coordenada_t camino[], int* tope_camino, int tope_campo);
+/*
+*
+*
+*
+*/
+int modo_juego(int tope_arg, char* argv[], char config[], char grabacion[]);
 /*
 *
 *
 *
 */
 void comandos(int argc, char* argv[]);
+
 #endif /* __ARGUMENTOS_H__ */
