@@ -74,8 +74,8 @@ typedef struct configuracion {
 	int costo_G_extra[MAX_TORRES];
 	int cantidad_enanos[MAX_NIVELES];
 	int cantidad_elfos[MAX_NIVELES];
-	bool es_aleatoreo[MAX_NIVELES];
 	char ruta_camino[MAX_RUTA];
+	bool es_aleatoreo;
 	float velocidad;
 } configuracion_t;
 /*

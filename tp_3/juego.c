@@ -374,9 +374,9 @@ void bonificar_con_defesor(juego_t* juego, campo_t campo){
 	}
 }
 /*
-*
-*
-*
+*Analisis: Configura los caminos de forma aleatoria con utiles.o
+*Pre: Nivel correspondiente
+*Post: Nivel cargado con sus caminos
 */
 void configurar_camino_aleatorio(int nvl, nivel_t* nivel, campo_t* campo){
 	nivel_t nivel_aux;
@@ -402,9 +402,9 @@ void configurar_camino_aleatorio(int nvl, nivel_t* nivel, campo_t* campo){
 
 }
 /*
-*
-*
-*
+*Analisis: Configura el campo segun la configuracion  y el nivel en el que se encuentre
+*Pre: Configuracion cargada y nivel correspondiente
+*Post: Campo del nivel configurado
 */
 void configurar_campo(int nivel, campo_t* campo, configuracion_t config){
 	campo->cantidad_enanos = config.cantidad_enanos[nivel];
@@ -428,9 +428,9 @@ void configurar_campo(int nivel, campo_t* campo, configuracion_t config){
 	}
 }
 /*
-*
-*
-*
+*Analisis: Dado un vector estructura_t carga todos los niveles correspondientes segun cada posicion
+*Pre: Configuracion ya cargada
+*Post: Vector de estructuras cargado con todos los niveles
 */
 void inicializar_niveles(estructura_t estructura[MAX_NIVELES], configuracion_t config){
 	for (int nivel=NIVEL_1; nivel<MAX_NIVELES; nivel++){
@@ -454,9 +454,9 @@ void inicializar_niveles(estructura_t estructura[MAX_NIVELES], configuracion_t c
 	}
 }
 /*
-*
-*
-*
+*Analisis: Segun el nivel actual del juego carga la estructura correspondiente
+*Pre: Niveles inicializados
+*Post: Juego con su nivel cargado(con defensores)
 */
 void cargar_nivel(juego_t* juego, estructura_t estructura){
 	juego->nivel=estructura.nivel;
@@ -464,9 +464,9 @@ void cargar_nivel(juego_t* juego, estructura_t estructura){
 	asignar_defensores(juego, estructura.campo);
 }
 /*
-*
-*
-*
+*Analisis: Juega un turno completo
+*Pre: Juego inicializado y con el primer nivel cargado
+*Post: Muestra por pantalla un turno completo y lo ejecuta
 */
 void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], configuracion_t configuracion, ranking_t ranking){
 	if (estado_nivel(juego->nivel) == GANADO){
@@ -483,46 +483,18 @@ void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], 
 	}
 }
 /*
-*
-*
-*
+*Analisis: Configuracion inicial del juego
+*Pre: Configuracion y estructuras cargadas
+*Post: Juego inicializado y con el nivel 1 cargado, ranking con el usuario
 */
-void configurar_juego(juego_t* juego, configuracion_t configuracion, estructura_t estructura[], ranking_t ranking) {
+void configurar_juego(juego_t* juego, configuracion_t configuracion, estructura_t estructura[], ranking_t* ranking) {
 	inicializar_juego(juego, configuracion);
 	inicializar_niveles(estructura, configuracion);
 	printf("Introduzca su nombre: ");
-	scanf("%[^\n]", ranking.usuario);
+	scanf("%[^\n]", ranking->usuario);
 	system("clear");
 	cargar_nivel(juego, estructura[juego->nivel_actual]);
 }
-void configurar_por_defecto(configuracion_t* configuracion){
-	configuracion->critico_legolas=25;
-	configuracion->critico_gimli=25;
-	configuracion->fallo_legolas=10;
-	configuracion->fallo_gimli=10;
-	configuracion->torres.resistencia_torre_1=SALUD_TORRES;
-	configuracion->torres.resistencia_torre_2=SALUD_TORRES;
-	configuracion->torres.enanos_extra=10;
-	configuracion->torres.elfos_extra=10;
-	configuracion->costo_G_extra[TORRE_1]=COSTO_BONIFICACION;
-	configuracion->costo_G_extra[TORRE_2]=COSTO_BONIFICACION;
-	configuracion->costo_L_extra[TORRE_1]=COSTO_BONIFICACION;
-	configuracion->costo_L_extra[TORRE_2]=COSTO_BONIFICACION;
-	configuracion->cantidad_enanos[NIVEL_1]=DEFENSORES_NVL_1;
-	configuracion->cantidad_enanos[NIVEL_2]=0;
-	configuracion->cantidad_enanos[NIVEL_3]=DEFENSORES_NVL_3;
-	configuracion->cantidad_enanos[NIVEL_4]=DEFENSORES_NVL_4;
-	configuracion->cantidad_elfos[NIVEL_1]=0;
-	configuracion->cantidad_elfos[NIVEL_2]=DEFENSORES_NVL_2;
-	configuracion->cantidad_elfos[NIVEL_3]=DEFENSORES_NVL_3;
-	configuracion->cantidad_elfos[NIVEL_4]=DEFENSORES_NVL_4;
-	configuracion->es_aleatoreo[NIVEL_1]=true;
-	configuracion->es_aleatoreo[NIVEL_2]=true;
-	configuracion->es_aleatoreo[NIVEL_3]=true;
-	configuracion->es_aleatoreo[NIVEL_4]=true;
-	configuracion->velocidad=0.5;
-}
-
 int main (int argc, char* argv[]){
 	srand((unsigned)time(NULL));
 
@@ -541,20 +513,17 @@ int main (int argc, char* argv[]){
 			return 0;
 		}else if (programa==JUGAR){
 			int modo=modo_juego(argc, argv, archivo_config, archivo_grabacion);
-			//configurar_por_defecto(&configuracion);
 			cargar_confirguracion(&configuracion, modo, archivo_config);
 			mostrar_inicio(archivo_config, archivo_grabacion, configuracion);
-			configurar_juego(&juego, configuracion, estructura, ranking);
+			configurar_juego(&juego, configuracion, estructura, &ranking);
 			while(estado_juego(juego) == JUGANDO){
 				jugar_turno_completo(&juego, estructura, configuracion, ranking);
-				/*
-				actualizar_ranking(juego, &puntos, usuario);
-				*/
+				//actualizar_ranking(juego, &puntos, usuario, archivo_config);
 				if ((modo == STANDARD_GRABANDO) || (modo == CUSTOM_GRABANDO)){
-					printf("grabando...\n");
 					guardar_partida(juego, archivo_grabacion);
 				}
 			}
+			printf("grabando...\n");
 			if (estado_juego(juego) == GANADO){
 				mostrar_juego_ganado();
 			}else if (estado_juego(juego) == PERDIDO)
