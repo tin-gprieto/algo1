@@ -12,6 +12,7 @@
 #define MAX_CLAVE 50
 #define MAX_DIRECCION 50
 #define MAX_LONGITUD_CAMINO 200
+#define MAX_RANKING 100
 
 #define FORMATO_CLAVE "%[^=]"
 
@@ -27,10 +28,13 @@
 #define FORMATO_VALOR "=%i\n"
 #define FORMATO_COORDENADA "%i;%i\n"
 
-#define FORMATO_RANKING "%[^;];%i\n"
-#define FORMATO_RANKING_ESCRITURA "%s;%i\n"
+#define FORMATO_RANKING "%[^;];%d\n"
+#define FORMATO_RANKING_ESCRITURA "%s;%d\n"
 
 #define ARCHIVO_RANKING "ranking_"
+#define EXTENSION_RANKING ".csv"
+#define SEPARADOR_EXTENSION "."
+#define ARCHIVO_RANKING_STANDARD "ranking.csv"
 #define ARCHIVO_CONFIG_STANDARD "configuracion_standard.txt"
 
 #define CLAVE_TORRES "RESISTENCIA_TORRES"
@@ -58,10 +62,10 @@ const int CAMINO_1=1;
 const int CAMINO_2=2;
 const int MULTIPLICADOR=1000;
 const char SEPARADOR[MAX_SEPARADOR]= "=";
-const char IZQ= 'a';
-const char DER= 'd';
-const char ARRIBA= 'w';
-const char ABAJO= 's';
+const char IZQ='a';
+const char DER='d';
+const char ARRIBA='w';
+const char ABAJO='s';
 
 /*
 *Analisis: Chequear si el valor pasado es -1, si es así lo reemplaza po el valor por defecto
@@ -98,7 +102,7 @@ void chequear_configuracion(configuracion_t* configuracion, configuracion_t stan
   chequear_entero(&(configuracion->fallo_legolas), standard.fallo_legolas);
   chequear_entero(&(configuracion->critico_legolas), standard.critico_legolas);
   if (configuracion->velocidad == CONFIG_VACIA){
-    configuracion->velocidad=standard.velocidad;
+    configuracion->velocidad = standard.velocidad;
   }
 }
 /*
@@ -129,9 +133,9 @@ void leer_configuracion(FILE* archivo, configuracion_t* config){
     }else if (strcmp(clave, CLAVE_CAMINO)==0){
       fscanf(archivo,FORMATO_CAMINO, config->ruta_camino);
       if(atoi(config->ruta_camino)==CONFIG_VACIA){
-        (config->es_aleatoreo)=false;
-      }else{
         (config->es_aleatoreo)=true;
+      }else{
+        (config->es_aleatoreo)=false;
       }
     }
     memset(clave,'\0',MAX_CLAVE);
@@ -466,37 +470,44 @@ void poneme_la_repe(char* argv[]){
   }
 }
 /*
-*NO TERMINADA
+*FALLA
 *Analisis: Calcula la cantidad de orcos muertos(no funciona) y los va sumando al ranking
 */
 void calcular_orcos_muertos(juego_t juego, int* orcos){
   for(int pos=0; pos<juego.nivel.tope_enemigos; pos++){
     if(juego.nivel.enemigos[pos].vida==0){
-      orcos++;
+      *orcos=*orcos+1;
     }
   }
 }
 /*
-*NO TERMINADA
-*Analisis: Calcula el puntaje segun la configuracion y la cantidad de orcos muertos(no funciona)(la carga al ranking)
+*Analisis: Escribe al final del archivo ranking (chequeando si abre) el usuario y su puntuacion final
+*Pre: Nombre del archivo de ranking ya cargado a un string y ranking con el puntaje y usuario
+*Post: Archivo con datos del ranking al final del mismo o advertencia si no abre el archivo
 */
-void calcular_puntaje(juego_t juego, configuracion_t config, ranking_t* ranking){
-  int torre_1=config.torres.resistencia_torre_1;
-  int torre_2=config.torres.resistencia_torre_2;
-  int enanos_extra=config.torres.enanos_extra;
-  int elfos_extra=config.torres.elfos_extra;
-  int enanos_inicio=(config.cantidad_enanos[NIVEL_1]+config.cantidad_enanos[NIVEL_2]+config.cantidad_enanos[NIVEL_3]+config.cantidad_enanos[NIVEL_4]);
-  int elfos_inicio=((config.cantidad_elfos[NIVEL_1]+config.cantidad_elfos[NIVEL_2]+config.cantidad_elfos[NIVEL_3]+config.cantidad_elfos[NIVEL_4]));
-  int denominador=(torre_1+torre_2+enanos_extra+elfos_extra+enanos_inicio+elfos_inicio);
-  calcular_orcos_muertos(juego, &(ranking->orcos_muertos));
-  ranking->puntos=(((MULTIPLICADOR)*(ranking->orcos_muertos))/(denominador));
+void guardar_en_ranking(char direc_ranking[], ranking_t ranking){
+  FILE* archivo_ranking=fopen(direc_ranking, "a");
+  if(!archivo_ranking){
+    printf("No se pudo abrir el archivo\n");
+    fclose(archivo_ranking);
+  }else{
+    fprintf(archivo_ranking, FORMATO_RANKING_ESCRITURA, ranking.usuario, ranking.puntos);
+    fclose(archivo_ranking);
+  }
 }
 /*
-*NO TERMINADA
-*Analisis: Guarda informacion del usuario de forma ordenada (no implementado)
+*Analisis: A partir de la configuracion devuelve el nombre del archivo ranking
+*Pre: Tipo de configuracion cargada al string "configuracion"
+*Post: Nombre del archivo de ranking cargado al string "direc_ranking"
 */
-void guardar_en_ranking(FILE* archivo, ranking_t ranking){
-  fprintf(archivo, FORMATO_RANKING_ESCRITURA, ranking.usuario, ranking.puntos);
+void obtener_direc_ranking(char configuracion[], char direc_ranking[]){
+  if(strcmp(configuracion, ARCHIVO_CONFIG_STANDARD)==0){
+    strcpy(direc_ranking, ARCHIVO_RANKING_STANDARD);
+  }else{
+    strcpy(direc_ranking, ARCHIVO_RANKING);
+    strcat(direc_ranking, strtok(configuracion, SEPARADOR_EXTENSION));
+    strcat(direc_ranking, EXTENSION_RANKING);
+  }
 }
 /*
 *Analisis: Imprime por pantalla los datos del archivo de ranking
@@ -539,19 +550,21 @@ void mostra_ranking(char ranking[], int tope){
 */
 void ranking(char* argv[]){
   char arg_2[MAX_ARCHIVO];
+  char arg_2_valor[MAX_ARCHIVO];
   char arg_3[MAX_ARCHIVO];
   char arg_3_valor[MAX_ARCHIVO];
   char ranking[MAX_ARCHIVO];
-  strcpy(ranking, ARCHIVO_RANKING);
 
   if (argv[2]==NULL){
-    strcat(ranking, ARCHIVO_CONFIG_STANDARD);
+    strcpy(arg_2, ARCHIVO_CONFIG_STANDARD);
+    obtener_direc_ranking(arg_2, ranking);
     printf("RANKING de %s COMPLETO \n" , ranking);
     mostra_ranking(ranking, CONFIG_VACIA);
   }else{
     strcpy(arg_2,strtok(argv[2], SEPARADOR));
     if(strcmp(arg_2,"config")==0){
-      strcat(ranking,strtok(NULL, SEPARADOR));
+      strcpy(arg_2_valor,strtok(NULL, SEPARADOR));
+      obtener_direc_ranking(arg_2_valor, ranking);
       if (argv[3]==NULL){
         printf("RANKING de %s COMPLETO \n" , ranking);
         mostra_ranking(ranking, CONFIG_VACIA);
@@ -565,31 +578,120 @@ void ranking(char* argv[]){
     }else if(strcmp(arg_2,"listar") == 0){
       int tope_lista=atoi(strtok(NULL, SEPARADOR));
       if (argv[3]==NULL){
-        strcat(ranking, ARCHIVO_CONFIG_STANDARD);
-        printf("RANKING de %s con  %i jugadores \n", ranking, tope_lista);
+        strcpy(arg_2, ARCHIVO_CONFIG_STANDARD);
+        obtener_direc_ranking(arg_2, ranking);
+        printf("RANKING de %s con %i jugadores \n", ranking, tope_lista);
         mostra_ranking(ranking, tope_lista);
       }else{
         strcpy(arg_3,strtok(argv[3], SEPARADOR));
-        strcat(ranking,strtok(NULL, SEPARADOR));
-        printf("RANKING de %s con  %i jugadores \n", ranking, tope_lista);
+        strcpy(arg_3_valor,strtok(NULL, SEPARADOR));
+        obtener_direc_ranking(arg_3_valor, ranking);
+        printf("RANKING de %s con %i jugadores \n", ranking, tope_lista);
         mostra_ranking(ranking, tope_lista);
       }
     }
   }
 }
-void actualizar_ranking(juego_t juego, configuracion_t configuracion, ranking_t* ranking, char config[]){
-  char direc_ranking[MAX_DIRECCION];
-  strcpy(direc_ranking, ARCHIVO_RANKING);
-  strcat(direc_ranking, config);
-  FILE* archivo_ranking=fopen(direc_ranking, "w");
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+void obtener_lista(char direc_ranking[], ranking_t lista[], int* tope_lista) {
+  FILE* archivo_ranking=fopen(direc_ranking, "r");
   if(!archivo_ranking){
-    printf("No se pudo abrir el archivo\n");
+    printf("No se pudo abrir el ranking para leerlo\n");
     fclose(archivo_ranking);
   }else{
-    calcular_puntaje(juego, configuracion, ranking);
-    guardar_en_ranking(archivo_ranking, *ranking);
+    int tope_aux = *tope_lista;
+    int leido=fscanf(archivo_ranking, FORMATO_RANKING, lista[tope_aux].usuario, &lista[tope_aux].puntos);
+    while(leido==2){
+      tope_aux++;
+      leido=fscanf(archivo_ranking, FORMATO_RANKING, lista[tope_aux].usuario, &lista[tope_aux].puntos);
+    }
+    *tope_lista=tope_aux;
     fclose(archivo_ranking);
   }
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+void intercambiar_valores_ranking(ranking_t* primero, ranking_t* segundo){
+  ranking_t auxiliar;
+  auxiliar.puntos=primero->puntos;
+  strcpy(auxiliar.usuario, primero->usuario);
+  primero->puntos=segundo->puntos;
+  strcpy(primero->usuario, segundo->usuario);
+  segundo->puntos=auxiliar.puntos;
+  strcpy(segundo->usuario, auxiliar.usuario);
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+void ordenar_lista(ranking_t lista[], int tope_lista){
+  for (int i = 0; i < tope_lista; i++) {
+    for (int j = 0; j < (tope_lista-i); j++) {
+      if(lista[j].puntos<lista[j+1].puntos){
+        intercambiar_valores_ranking(&lista[j], &lista[j+1]);
+      }else if(lista[j].puntos==lista[j+1].puntos){
+        if(strcmp(lista[j].usuario, lista[j+1].usuario) < 0){
+          intercambiar_valores_ranking(&lista[j], &lista[j+1]);
+        }
+      }
+    }
+  }
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+void reescribir_ranking(ranking_t lista[], int tope_lista, char direc_ranking[]){
+  FILE* nuevo_ranking=fopen("nuevo_ranking.txt", "w");
+  if(!nuevo_ranking){
+    printf("No se pudo abrir el ranking para leerlo\n");
+    fclose(nuevo_ranking);
+  }else{
+    for (size_t i = 0; i < tope_lista; i++) {
+      fprintf(nuevo_ranking, FORMATO_RANKING_ESCRITURA, lista[i].usuario, lista[i].puntos);
+    }
+    fclose(nuevo_ranking);
+    rename("nuevo_ranking.txt", direc_ranking);
+
+  }
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+void ordenar_ranking(char direc_ranking[]){
+  ranking_t lista[MAX_RANKING];
+  int tope_lista=0;
+  obtener_lista(direc_ranking, lista, &tope_lista);
+  ordenar_lista(lista, tope_lista);
+  reescribir_ranking(lista, tope_lista, direc_ranking);
+}
+void actualizar_ranking(juego_t juego, ranking_t ranking, char config[]){
+  char direc_ranking[MAX_DIRECCION];
+  obtener_direc_ranking(config, direc_ranking);
+  guardar_en_ranking(direc_ranking, ranking);
+  ordenar_ranking(direc_ranking);
+}
+void calcular_puntaje(juego_t juego, configuracion_t config, ranking_t* ranking){
+  int torre_1=config.torres.resistencia_torre_1;
+  int torre_2=config.torres.resistencia_torre_2;
+  int enanos_extra=config.torres.enanos_extra;
+  int elfos_extra=config.torres.elfos_extra;
+  int enanos_inicio=(config.cantidad_enanos[NIVEL_1]+config.cantidad_enanos[NIVEL_2]+config.cantidad_enanos[NIVEL_3]+config.cantidad_enanos[NIVEL_4]);
+  int elfos_inicio=((config.cantidad_elfos[NIVEL_1]+config.cantidad_elfos[NIVEL_2]+config.cantidad_elfos[NIVEL_3]+config.cantidad_elfos[NIVEL_4]));
+  int denominador=(torre_1+torre_2+enanos_extra+elfos_extra+enanos_inicio+elfos_inicio);
+  calcular_orcos_muertos(juego, &(ranking->orcos_muertos));
+  ranking->puntos=(((ranking->orcos_muertos)*(MULTIPLICADOR))/(denominador));
 }
 void configurar_camino_archivo(int nvl, nivel_t* nivel, configuracion_t configuracion){
   FILE* archivo_camino=fopen(configuracion.ruta_camino, "r");

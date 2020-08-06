@@ -91,7 +91,11 @@ void mostrar_inicio(char configuracion[], char grabacion[], configuracion_t conf
 	printf("-ENANOS_ANIMO: %i %i\n", config.fallo_gimli, config.critico_gimli);
 	printf("-ELFOS_ANIMO: %i %i\n", config.fallo_legolas, config.critico_legolas );
 	printf("-VELOCIDAD: %f \n", config.velocidad);
-	printf("-RUTA CAMINO: %s \n", config.ruta_camino);
+	if(config.es_aleatoreo){
+			printf("CAMINOS ALEATORIOS\n");
+	}else{
+		printf("-RUTA CAMINO: %s \n", config.ruta_camino);
+	}
 	detener_el_tiempo(2);
 }
 /*
@@ -138,7 +142,7 @@ void mostrar_juego_ganado(){
 */
 void mostrar_campo(juego_t juego, float velocidad, ranking_t ranking){
 	printf("USUARIO: %s  \n", ranking.usuario);
-	printf("PUNTAJE: %i           ORCOS MUERTOS: %i\n", ranking.puntos, ranking.orcos_muertos);
+	printf("PUNTAJE: %i           ORCOS MUERTOS: %d \n", ranking.puntos, ranking.orcos_muertos);
 	mostrar_juego(juego);
 	detener_el_tiempo(velocidad);
 	system("clear");
@@ -498,16 +502,19 @@ int main (int argc, char* argv[]){
 			configurar_juego(&juego, configuracion, estructura, &ranking);
 			while(estado_juego(juego) == JUGANDO){
 				jugar_turno_completo(&juego, estructura, configuracion, ranking);
-				actualizar_ranking(juego,  configuracion, &ranking, archivo_config);
+				calcular_puntaje(juego, configuracion, &ranking);
 				if ((modo == STANDARD_GRABANDO) || (modo == CUSTOM_GRABANDO)){
 					guardar_partida(juego, archivo_grabacion);
+					printf("grabando...\n");
 				}
 			}
-			printf("grabando...\n");
 			if (estado_juego(juego) == GANADO){
 				mostrar_juego_ganado();
-			}else if (estado_juego(juego) == PERDIDO)
+				actualizar_ranking(juego, ranking, archivo_config);
+			}else if (estado_juego(juego) == PERDIDO){
 				mostrar_juego_perdido();
+				actualizar_ranking(juego, ranking, archivo_config);
+			}
 			return 0;
 		}else{
 			printf("Hubo un error con los comandos, revisar si se ingresó correctamente.\n");

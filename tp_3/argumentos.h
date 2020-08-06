@@ -33,10 +33,15 @@ typedef struct ranking{
 	int orcos_muertos;
 } ranking_t;
 /*
-* NO TERMINADA
+*NO TERMINADA (contador de orcos está mal)
+*Analisis: Calcula el puntaje segun la configuracion y la cantidad de orcos muertos(no funciona)(la carga al ranking)
+*/
+void calcular_puntaje(juego_t juego, configuracion_t config, ranking_t* ranking);
+/*
+* NO TERMINADA (no funciona el orden alfabetico)
 *Analisis: Calcula los puntos y actualiza el archivo del ranking segun la configuracion
 */
-void actualizar_ranking(juego_t juego, configuracion_t configuracion, ranking_t* ranking, char config[]);
+void actualizar_ranking(juego_t juego, ranking_t ranking, char config[]);
 /*
 *NO TERMINADA
 *Analisis: Abre el archivo de caminos y carga su informacion al nivel
