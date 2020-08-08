@@ -13,6 +13,7 @@
 #define MAX_DIRECCION 50
 #define MAX_LONGITUD_CAMINO 200
 #define MAX_RANKING 100
+#define MAX_CAMPO 20
 
 #define FORMATO_CLAVE "%[^=]"
 
@@ -60,12 +61,21 @@ const int TOPE_NIVELES=4;
 const int CONFIG_VACIA=-1;
 const int CAMINO_1=1;
 const int CAMINO_2=2;
+const int HORIZONTAL=0;
+const int VERTICAL=1;
+const int SIN_DEFINIR=-1;
 const int MULTIPLICADOR=1000;
 const char SEPARADOR[MAX_SEPARADOR]= "=";
 const char IZQ='a';
 const char DER='d';
 const char ARRIBA='w';
 const char ABAJO='s';
+const char COMIENZO= 'E';
+const char FINAL= 'T';
+const char CAMINITO= ' ';
+const char CAMPO= '.';
+const char LIMITE= 'O';
+const char PROHIBIDO= 'X';
 
 /*
 *Analisis: Chequear si el valor pasado es -1, si es así lo reemplaza po el valor por defecto
@@ -250,7 +260,6 @@ void crear_configuracion(char* argv[]){
     FILE* archivo_config=fopen(argv[2], "w");
     if(!archivo_config){
       printf("No se pudo abrir la configuracion propia\n");
-      fclose(archivo_config);
     }else{
       printf("Advertencia: Si no quiere configurar alguna de las opciones ingrese '-1'...\n");
       asignar_torres_config(archivo_config);
@@ -273,117 +282,242 @@ void crear_configuracion(char* argv[]){
 */
 void cargar_camino(FILE* archivo, int nvl, int camino, nivel_t* nivel){
 }
-/*
-*NO TERMINADA
-*Analisis: Devuelve verdadero si no vuelve para atras o se va del mapa
-*/
+void mostrar_camino_creado(int nivel, int camino){
+	system("clear");
+	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n\n\n\n\n\n\n");
+	printf("                        -------------------\n");
+	printf("                CAMINO %i DEL NIVEL %i CONFIGURADO\n", camino, (nivel+1));
+	printf("                        -------------------\n\n\n\n\n\n\n\n\n");
+	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
+	detener_el_tiempo(2);
+	system("clear");
+}
 bool cumple_condiciones(coordenada_t coord_actual, coordenada_t coord_anterior, int tope_campo){
   if((coord_actual.col==coord_anterior.col)&&(coord_actual.fil==coord_anterior.fil)){
     return false;
-  }else if((coord_actual.col>tope_campo)||(coord_actual.fil>tope_campo)){
+  }else if((coord_actual.col>=tope_campo)||(coord_actual.fil>=tope_campo)){
+    return false;
+  }else if((coord_actual.col<0)||(coord_actual.fil<0)){
     return false;
   }else{
     return true;
   }
 }
-/*
-*NO TERMINADA
-*Analisis: Segun la direccion recibida modifica la coord_aux a partir de la coord_anterior
-*/
-void pasar_direccion(int direccion, coordenada_t* coord_aux, coordenada_t coord_anterior){
+void imprimir_margen(int tope_campo){
+	for (int i = 0; i < tope_campo; i++) {
+		if(i==0){
+			printf("____0%i|", i);
+		}else if (i<10){
+			printf("0%i|", i);
+		}else if(i==tope_campo-1){
+			printf("%i|____\n", i);
+		}else{
+			printf("%i|", i);
+		}
+	}
+}
+void asignar_camino(char campo[MAX_CAMPO][MAX_CAMPO], coordenada_t camino[MAX_LONGITUD_CAMINO], int tope_camino){
+	for (int i=0; i<tope_camino; i++){
+			if (i == 0)
+				campo[camino[i].fil][camino[i].col]= COMIENZO;
+			else if(i == (tope_camino) - 1)
+				campo[camino[i].fil][camino[i].col]= FINAL;
+			else
+				campo[camino[i].fil][camino[i].col]= CAMINITO;
+		}
+}
+bool es_vertice(int fila, int columna, int tope){
+	if((fila==0)&&(columna==0)){
+		return true;
+	}else if((fila==0)&&(columna==(tope-1))){
+		return true;
+	}else if((fila==(tope-1))&&(columna==0)){
+		return true;
+	}else if((fila==(tope-1))&&(columna==(tope-1))){
+		return true;
+	}else{
+		return false;
+	}
+}
+void inicializar_campo(char campo[MAX_CAMPO][MAX_CAMPO], int tope_campo, int modo_camino, int limite){
+	for (int i=0; i<tope_campo; i++){
+		for (int j = 0; j < tope_campo; j++) {
+			if(modo_camino==HORIZONTAL){
+				if(j==limite){
+					campo[i][j]=LIMITE;
+				}else{
+					campo[i][j]=CAMPO;
+				}
+			}else if(modo_camino==VERTICAL){
+				if(i==limite){
+					campo[i][j]=LIMITE;
+				}else{
+					campo[i][j]=CAMPO;
+				}
+			}else{
+				if (es_vertice(i, j, tope_campo)){
+					campo[i][j]=PROHIBIDO;
+				}else{
+					campo[i][j]=CAMPO;
+				}
+			}
+		}
+	}
+}
+void mostrar_caminos(coordenada_t camino[MAX_LONGITUD_CAMINO], int tope_camino,  int tope_campo, int modo_camino, int limite){
+	char campo[MAX_CAMPO][MAX_CAMPO];
+	inicializar_campo(campo, tope_campo, modo_camino, limite);
+	asignar_camino(campo, camino, tope_camino);
+	imprimir_margen(tope_campo);
+	for (int i=0; i < tope_campo; i++){
+		if (i>=10)
+				printf(" %i|", i);
+			else
+				printf(" 0%i|", i);
+		for (int j=0; j < tope_campo; j++){
+			printf(" %c ", campo[i][j]);
+		}
+		if (i>=10)
+				printf(" %i|", i);
+			else
+				printf(" 0%i|", i);
+		printf("\n");
+	}
+	imprimir_margen(tope_campo);
+}
+int direccion_fila(char direccion,  int fil_anterior){
   if(direccion==IZQ){
-    coord_aux->fil=coord_anterior.fil;
-    coord_aux->col=coord_anterior.col-1;
+    return fil_anterior;
   }else if(direccion==DER){
-    coord_aux->fil=coord_anterior.fil;
-    coord_aux->col=coord_anterior.col+1;
+    return fil_anterior;
   }else if(direccion==ARRIBA){
-    coord_aux->fil=coord_anterior.fil-1;
-    coord_aux->col=coord_anterior.col;
+    return fil_anterior-1;
   }else if(direccion==ABAJO){
-    coord_aux->fil=coord_anterior.fil+1;
-    coord_aux->col=coord_anterior.col;
+    return fil_anterior+1;
   }
+	return -1;
 }
-/*
-*NO TERMINADA
-*Analisis: Pide el valor de la fila de la entrada. columna fija
-*/
-void pedir_entrada(coordenada_t* entrada, int* tope){
-  entrada->col=0;
-  printf("Asignar fila de la ENTRADA: \n");
-  scanf("%i", &(entrada->fil) );
-  printf("ENTRADA=(%i;%i)\n", entrada->fil, entrada->col );
-  tope++;
+int direccion_columna(char direccion,  int col_anterior){
+  if(direccion==IZQ){
+    return col_anterior-1;
+  }else if(direccion==DER){
+    return col_anterior+1;
+  }else if(direccion==ARRIBA){
+    return col_anterior;
+  }else if(direccion==ABAJO){
+    return col_anterior;
+  }
+	return -1;
 }
-/*
-*NO TERMINADA
-*Analisis: Pide una coordenad nueva a partir de la anterior(camino[tope]). (PROBLEMA se reinicia la coordenada anterior)
-*/
-void pedir_coorndenada(coordenada_t camino[], int tope_camino, int tope_campo){
-    int direccion;
+bool es_margen(coordenada_t coord, int tope){
+	if((coord.fil==0)||(coord.fil==(tope-1))||(coord.col==0)||(coord.col==(tope-1))){
+		return true;
+	}else{
+		return false;
+	}
+}
+void pedir_entrada(coordenada_t camino[], int* tope_camino, int tope_campo){
+	coordenada_t coord_aux;
+	printf("Asignar la ENTRADA: \n");
+  printf("FILA:");
+  scanf("%i", &coord_aux.fil);
+	printf("COLUMNA:");
+  scanf("%i", &coord_aux.col);
+	while (es_vertice(coord_aux.fil, coord_aux.col, tope_campo)||(!es_margen(coord_aux, tope_campo))){
+		printf("HA PUESTO LA ENTRADA EN UN VERTICE O DENTRO DEL CAMPO, INGRESE NUEVAMENTE: \n");
+		printf("FILA:");
+	  scanf("%i", &coord_aux.fil);
+		printf("COLUMNA:");
+	  scanf("%i", &coord_aux.col);
+	}
+	camino[*tope_camino].fil=coord_aux.fil;
+	camino[*tope_camino].col=coord_aux.col;
+	*(tope_camino)=1;
+  printf("ENTRADA=(%i;%i)\n", camino[*tope_camino-1].fil, camino[*tope_camino-1].col);
+}
+void pedir_coordenada(coordenada_t camino[], int* tope_camino, int tope_campo){
+    char direccion;
     coordenada_t coord_aux;
-    coordenada_t coord_actual;
-    coord_actual.fil=camino[tope_camino].fil;
-    coord_actual.col=camino[tope_camino].col;
-    direccion = getchar();
-    pasar_direccion(direccion, &coord_aux, coord_actual);
-    while (!cumple_condiciones(coord_aux, camino[tope_camino-1], tope_campo)){
+    coordenada_t coord_anterior;
+    coord_anterior.fil=camino[*tope_camino-1].fil;
+    coord_anterior.col=camino[*tope_camino-1].col;
+    printf("DIRECCION:");
+		scanf(" %c", &direccion);
+    coord_aux.fil=direccion_fila(direccion, coord_anterior.fil);
+		coord_aux.col=direccion_columna(direccion, coord_anterior.col);
+    while (((*tope_camino)>1)&&(!cumple_condiciones(coord_aux, camino[*tope_camino-2], tope_campo))){
         printf("VOLVISTE PARA ATRAS o SALISTE DEL MAPA!!\n");
-        direccion = getchar();
-        pasar_direccion(direccion, &coord_aux, coord_actual);
+				printf("DIRECCION:");
+				scanf(" %c", &direccion);
+		    coord_aux.fil=direccion_fila(direccion, coord_anterior.fil);
+				coord_aux.col=direccion_columna(direccion, coord_anterior.col);
     }
-    tope_camino++;
-    camino[tope_camino].fil=coord_aux.fil;
-    camino[tope_camino].col=coord_aux.col;
+		camino[*tope_camino].fil=coord_aux.fil;
+		camino[*tope_camino].col=coord_aux.col;
+		printf("ULTIMA POSICION: ( %i ; %i)\n", camino[*tope_camino].fil, camino[*tope_camino].col );
+		(*tope_camino)=(*tope_camino + 1);
 }
-/*
-*NO TERMINADA
-*Analisis: Devuelve verdadero si la ultima coordenada está en la posicion de la Torre
-*/
-bool camino_terminado(coordenada_t camino[], int tope_camino, int tope_campo){
-  return((camino[tope_camino].col) == (tope_campo));
+bool camino_terminado(coordenada_t ultima_coord, int modo_camino, int limite){
+	if(modo_camino==HORIZONTAL){
+		return((ultima_coord.col) == limite);
+	}else if(modo_camino==VERTICAL){
+		return((ultima_coord.fil) == limite);
+	}else{
+		return SIN_DEFINIR;
+	}
 }
-/*
-*NO TERMINADA
-*Analisis: Escribe un camino completo al archivo
-*/
-void asignar_camino(FILE* archivo, int camino, juego_t* juego,  int tope_campo){
-  if(camino==CAMINO_1){
-    mostrar_juego(*juego);
-    pedir_entrada(&juego->nivel.camino_1[0], &juego->nivel.tope_camino_1);
-    while (!camino_terminado(juego->nivel.camino_1, juego->nivel.tope_camino_1, tope_campo)){
-      juego->nivel.tope_camino_1=0;
-      mostrar_juego(*juego);
-      pedir_coorndenada(juego->nivel.camino_1, juego->nivel.tope_camino_1, tope_campo);
-      juego->nivel.tope_camino_1++;
-      system("clear");
-    }
-    for (int i = 0; i < juego->nivel.tope_camino_1; i++) {
-      fprintf(archivo, FORMATO_COORDENADA, juego->nivel.camino_1[i].fil, juego->nivel.camino_1[i].col);
-    }
-  }else if (camino==CAMINO_2) {
-    juego->nivel.tope_camino_2=0;
-    mostrar_juego(*juego);
-    pedir_entrada(&juego->nivel.camino_2[0], &juego->nivel.tope_camino_2);
-    while (!camino_terminado(juego->nivel.camino_2, juego->nivel.tope_camino_2, tope_campo)){
-      mostrar_juego(*juego);
-      pedir_coorndenada(juego->nivel.camino_1, juego->nivel.tope_camino_1, tope_campo);
-      juego->nivel.tope_camino_2++;
-      system("clear");
-    }
-    for (int i = 0; i < juego->nivel.tope_camino_2; i++) {
-      fprintf(archivo, FORMATO_COORDENADA, juego->nivel.camino_2[i].fil, juego->nivel.camino_2[i].col);
-    }
-  }
-}
-/*
-*NO TERMINADA
-*Analisis: Segun el nivel y el camino titula las claves en el archivo de los caminos
-*/
-void titular_camino(FILE* archivo, int nivel, int camino){
-  fprintf(archivo, FORMATO_CREAR_CAMINO, CLAVE_NIVEL, nivel);
+void titular_archivo_camino(FILE* archivo, int nivel, int camino){
+  fprintf(archivo, FORMATO_CREAR_CAMINO, CLAVE_NIVEL, (nivel+1));
   fprintf(archivo, FORMATO_CREAR_CAMINO, CLAVE_CREAR_CAMINO, camino);
+}
+int modo_camino(coordenada_t entrada, int tope_campo, int* limite){
+	if(entrada.col==0){
+		*limite=(tope_campo-1);
+		return HORIZONTAL;
+	}else if (entrada.col==(tope_campo-1)){
+		*limite=0;
+		return HORIZONTAL;
+	}else if (entrada.fil==0){
+		*limite=(tope_campo-1);
+		return VERTICAL;
+	}else if (entrada.fil==(tope_campo-1)){
+		*limite=0;
+		return VERTICAL;
+	}else{
+		return SIN_DEFINIR;
+	}
+}
+void titular_el_campo(int nivel, int n_camino, int forma_camino){
+		printf("NIVEL: %i         CAMINO: %i\n", (nivel+1), n_camino);
+		if (forma_camino==HORIZONTAL){
+			printf("%s\n", "HORIZONTAL");
+		}else if (forma_camino==VERTICAL){
+			printf("%s\n", "VERTICAL");
+		}else{
+      	printf("SIN DEFINIR\n");
+    }
+}
+void pedir_camino(FILE* archivo, int nivel, int n_camino, int tope_campo){
+		coordenada_t camino[MAX_LONGITUD_CAMINO];
+		int tope_camino=0;
+		int limite=SIN_DEFINIR;
+		int forma_camino=SIN_DEFINIR;
+		titular_el_campo(nivel, n_camino, forma_camino);
+    mostrar_caminos(camino, tope_camino, tope_campo, forma_camino, limite);
+    pedir_entrada(camino, &tope_camino, tope_campo);
+		detener_el_tiempo(1.5);
+		system("clear");
+		forma_camino=modo_camino(camino[0], tope_campo, &limite);
+    while (!camino_terminado((camino[tope_camino-1]), forma_camino, limite)){
+			titular_el_campo(nivel, n_camino, forma_camino);
+      mostrar_caminos(camino, tope_camino, tope_campo, forma_camino, limite);
+      pedir_coordenada(camino, &tope_camino, tope_campo);
+      system("clear");
+    }
+		titular_archivo_camino(archivo, nivel, n_camino);
+    for (int i = 0; i < tope_camino; i++) {
+      fprintf(archivo, FORMATO_COORDENADA, camino[i].fil, camino[i].col);
+    }
 }
 /*
 *NO TERMINADA
@@ -396,25 +530,22 @@ void crear_caminos(char* argv[]){
     FILE*archivo_camino=fopen(argv[2], "w");
     if(!archivo_camino){
       printf("No se pudo abrir el archivo_camino\n");
-      fclose(archivo_camino);
     }else{
       for (int nivel = NIVEL_1; nivel < MAX_NIVELES; nivel++) {
         system("clear");
         printf("Advertencia: Las ENTRADAS de los caminos se ubican en la COLUMNA 0 y las TORRES se ubicaran en la ÚLTIMA COLUMNA\n");
         printf("HERRAMIENTAS: 'wasd'(en minuscula) para mover el camino\n");
-        juego_t juego_aux;
-        juego_aux.nivel_actual=nivel;
         if(nivel==NIVEL_1){
-          titular_camino(archivo_camino, nivel, CAMINO_1);
-          asignar_camino(archivo_camino, CAMINO_1, &juego_aux, TOPE_CAMPO_1);
+          pedir_camino(archivo_camino, nivel, CAMINO_1, TOPE_CAMPO_1);
+          mostrar_camino_creado(nivel, CAMINO_1);
         }else if(nivel==NIVEL_2){
-          titular_camino(archivo_camino, nivel, CAMINO_2);
-          asignar_camino(archivo_camino, CAMINO_2, &juego_aux, TOPE_CAMPO_1);
+          pedir_camino(archivo_camino, nivel, CAMINO_2, TOPE_CAMPO_1);
+          mostrar_camino_creado(nivel, CAMINO_2);
         }else if ((nivel==NIVEL_3)||(nivel==NIVEL_4)){
-          titular_camino(archivo_camino, nivel, CAMINO_1);
-          asignar_camino(archivo_camino, CAMINO_1, &juego_aux, TOPE_CAMPO_2);
-          titular_camino(archivo_camino, nivel, CAMINO_2);
-          asignar_camino(archivo_camino, CAMINO_2, &juego_aux, TOPE_CAMPO_2);
+          pedir_camino(archivo_camino, nivel, CAMINO_1, TOPE_CAMPO_2);
+          mostrar_camino_creado(nivel, CAMINO_1);
+          pedir_camino(archivo_camino, nivel, CAMINO_2, TOPE_CAMPO_2);
+          mostrar_camino_creado(nivel, CAMINO_2);
         }
       }
       fclose(archivo_camino);
@@ -430,7 +561,6 @@ void pasar_repeticion(char archivo[], float velocidad){
   FILE* partida=fopen(archivo,"r");
   if(!partida){
     printf("No se pudo abrir el archivo para pasar la repe.\n");
-    fclose(partida);
   }else{
     juego_t juego;
     fread(&juego, sizeof(juego_t),1, partida);
@@ -489,7 +619,6 @@ void guardar_en_ranking(char direc_ranking[], ranking_t ranking){
   FILE* archivo_ranking=fopen(direc_ranking, "a");
   if(!archivo_ranking){
     printf("No se pudo abrir el archivo\n");
-    fclose(archivo_ranking);
   }else{
     fprintf(archivo_ranking, FORMATO_RANKING_ESCRITURA, ranking.usuario, ranking.puntos);
     fclose(archivo_ranking);
@@ -520,7 +649,6 @@ void mostra_ranking(char ranking[], int tope){
   FILE* archivo_ranking=fopen(ranking, "r");
   if(!archivo_ranking){
     printf("No se pudo abrir el archivo del ranking. No se jugó con esa configuracion o no exite\n");
-    fclose(archivo_ranking);
   }else{
     if (tope==CONFIG_VACIA){
       int leido=fscanf(archivo_ranking, FORMATO_RANKING, usuario, &puntos);
@@ -601,7 +729,6 @@ void obtener_lista(char direc_ranking[], ranking_t lista[], int* tope_lista) {
   FILE* archivo_ranking=fopen(direc_ranking, "r");
   if(!archivo_ranking){
     printf("No se pudo abrir el ranking para leerlo\n");
-    fclose(archivo_ranking);
   }else{
     int tope_aux = *tope_lista;
     int leido=fscanf(archivo_ranking, FORMATO_RANKING, lista[tope_aux].usuario, &lista[tope_aux].puntos);
@@ -654,7 +781,6 @@ void reescribir_ranking(ranking_t lista[], int tope_lista, char direc_ranking[])
   FILE* nuevo_ranking=fopen("nuevo_ranking.txt", "w");
   if(!nuevo_ranking){
     printf("No se pudo abrir el ranking para leerlo\n");
-    fclose(nuevo_ranking);
   }else{
     for (size_t i = 0; i < tope_lista; i++) {
       fprintf(nuevo_ranking, FORMATO_RANKING_ESCRITURA, lista[i].usuario, lista[i].puntos);
@@ -697,7 +823,6 @@ void configurar_camino_archivo(int nvl, nivel_t* nivel, configuracion_t configur
   FILE* archivo_camino=fopen(configuracion.ruta_camino, "r");
   if(!archivo_camino){
     printf("No se pudo abrir el archivo_camino\n");
-    fclose(archivo_camino);
   }else{
   	if (nvl==NIVEL_1){
   		cargar_camino(archivo_camino, nvl, CAMINO_1, nivel);
@@ -780,7 +905,6 @@ void guardar_partida(juego_t juego, char grabacion[]){
   FILE* partida_guardada=fopen(grabacion, "a");
   if(!partida_guardada){
     printf("No se pudo abrir el archivo para grabar la partida.\n");
-    fclose(partida_guardada);
   }else{
     fwrite(&juego, sizeof(juego_t), 1, partida_guardada);
     fclose(partida_guardada);
@@ -791,7 +915,6 @@ void cargar_confirguracion (configuracion_t* configuracion, int modo, char nombr
     FILE*archivo_config_std=fopen("configuracion_standard.txt", "r");
     if(!archivo_config_std){
       printf("No se pudo abrir la configuracion\n");
-      fclose(archivo_config_std);
     }else{
       leer_configuracion(archivo_config_std, &config_std);
       fclose(archivo_config_std);
@@ -802,7 +925,6 @@ void cargar_confirguracion (configuracion_t* configuracion, int modo, char nombr
     FILE*archivo_config=fopen(nombre_archivo, "r");
     if(!archivo_config){
       printf("No se pudo abrir la configuracion propia\n");
-      fclose(archivo_config);
     }else{
       leer_configuracion(archivo_config, configuracion);
       chequear_configuracion(configuracion, config_std);

@@ -101,7 +101,7 @@ void mostrar_inicio(char configuracion[], char grabacion[], configuracion_t conf
 /*
 *Muestra por pantalla el nivel ganado
 */
-void mostar_nvl_ganado(juego_t juego){
+void mostrar_nvl_ganado(juego_t juego){
 	system("clear");
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n\n\n\n\n\n\n");
 	printf("                        -------------------\n");
@@ -452,7 +452,7 @@ void cargar_nivel(juego_t* juego, estructura_t estructura){
 */
 void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], configuracion_t configuracion, ranking_t ranking){
 	if (estado_nivel(juego->nivel) == GANADO){
-		mostar_nvl_ganado(*juego);
+		mostrar_nvl_ganado(*juego);
 		juego->nivel_actual++;
 		cargar_nivel(juego, estructura[juego->nivel_actual]);
 	}
