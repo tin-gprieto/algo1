@@ -15,8 +15,12 @@
 #define MAX_RANKING 100
 #define MAX_CAMPO 20
 
-#define FORMATO_CLAVE "%[^=]"
+#define COLOR_CYAN "\x1b[36m"
+#define COLOR_VERDE "\x1b[32m"
+#define COLOR_ROJO "\x1b[31m"
+#define COLOR_RESET "\x1b[0m"
 
+#define FORMATO_CLAVE "%[^=]"
 #define FORMATO_CLAVE_ESCRITURA "%s"
 #define FORMATO_TORRES "=%i;%i\n"
 #define FORMATO_INICIO "=%i;%i;%i;%i\n"
@@ -25,7 +29,8 @@
 #define FORMATO_VELOCIDAD "=%f\n"
 #define FORMATO_CAMINO "=%s\n"
 
-#define FORMATO_CREAR_CAMINO "%s=%i\n"
+#define FORMATO_CREAR_CAMINO "NIVEL=%i\nCAMINO=%i\n"
+#define FORMATO_CREAR_CAMINO_ESCRITURA "%s=%i\n"
 #define FORMATO_VALOR "=%i\n"
 #define FORMATO_COORDENADA "%i;%i\n"
 
@@ -74,7 +79,7 @@ const char COMIENZO= 'E';
 const char FINAL= 'T';
 const char CAMINITO= ' ';
 const char CAMPO= '.';
-const char LIMITE= 'O';
+const char LIMITE= '*';
 const char PROHIBIDO= 'X';
 
 /*
@@ -143,9 +148,9 @@ void leer_configuracion(FILE* archivo, configuracion_t* config){
     }else if (strcmp(clave, CLAVE_CAMINO)==0){
       fscanf(archivo,FORMATO_CAMINO, config->ruta_camino);
       if(atoi(config->ruta_camino)==CONFIG_VACIA){
-        (config->es_aleatoreo)=true;
+        (config->hay_caminos)=false;
       }else{
-        (config->es_aleatoreo)=false;
+        (config->hay_caminos)=true;
       }
     }
     memset(clave,'\0',MAX_CLAVE);
@@ -276,12 +281,6 @@ void crear_configuracion(char* argv[]){
     printf("No se han ingresado los archivos correspondientes...\n");
   }
 }
-/*
-*NO TERMINADA
-*Analisis: Lee el archivo de caminos y lo pasa al nivel que corresponde
-*/
-void cargar_camino(FILE* archivo, int nvl, int camino, nivel_t* nivel){
-}
 void mostrar_camino_creado(int nivel, int camino){
 	system("clear");
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n\n\n\n\n\n\n");
@@ -292,12 +291,12 @@ void mostrar_camino_creado(int nivel, int camino){
 	detener_el_tiempo(2);
 	system("clear");
 }
-bool cumple_condiciones(coordenada_t coord_actual, coordenada_t coord_anterior, int tope_campo){
-  if((coord_actual.col==coord_anterior.col)&&(coord_actual.fil==coord_anterior.fil)){
+bool cumple_condiciones(coordenada_t nueva_coord, coordenada_t coord_anterior, int tope_campo){
+  if((nueva_coord.col==coord_anterior.col)&&(nueva_coord.fil==coord_anterior.fil)){
     return false;
-  }else if((coord_actual.col>=tope_campo)||(coord_actual.fil>=tope_campo)){
+  }else if((nueva_coord.col>=tope_campo)||(nueva_coord.fil>=tope_campo)){
     return false;
-  }else if((coord_actual.col<0)||(coord_actual.fil<0)){
+  }else if((nueva_coord.col<0)||(nueva_coord.fil<0)){
     return false;
   }else{
     return true;
@@ -339,6 +338,13 @@ bool es_vertice(int fila, int columna, int tope){
 		return false;
 	}
 }
+bool es_margen(int fila, int columna, int tope){
+  if((fila==0)||(fila==(tope-1))||(columna==0)||(columna==(tope-1))){
+    return true;
+  }else{
+    return false;
+  }
+}
 void inicializar_campo(char campo[MAX_CAMPO][MAX_CAMPO], int tope_campo, int modo_camino, int limite){
 	for (int i=0; i<tope_campo; i++){
 		for (int j = 0; j < tope_campo; j++) {
@@ -355,7 +361,7 @@ void inicializar_campo(char campo[MAX_CAMPO][MAX_CAMPO], int tope_campo, int mod
 					campo[i][j]=CAMPO;
 				}
 			}else{
-				if (es_vertice(i, j, tope_campo)){
+				if (es_vertice(i, j, tope_campo)||(!es_margen(i, j, tope_campo))){
 					campo[i][j]=PROHIBIDO;
 				}else{
 					campo[i][j]=CAMPO;
@@ -375,7 +381,13 @@ void mostrar_caminos(coordenada_t camino[MAX_LONGITUD_CAMINO], int tope_camino, 
 			else
 				printf(" 0%i|", i);
 		for (int j=0; j < tope_campo; j++){
-			printf(" %c ", campo[i][j]);
+      if(campo[i][j]==PROHIBIDO){
+        printf(COLOR_ROJO " %c " COLOR_RESET, campo[i][j]);
+      }else if(campo[i][j]==LIMITE){
+        printf(COLOR_VERDE " %c " COLOR_RESET, campo[i][j]);
+      }else{
+        printf(" %c ", campo[i][j]);
+      }
 		}
 		if (i>=10)
 				printf(" %i|", i);
@@ -409,13 +421,6 @@ int direccion_columna(char direccion,  int col_anterior){
   }
 	return -1;
 }
-bool es_margen(coordenada_t coord, int tope){
-	if((coord.fil==0)||(coord.fil==(tope-1))||(coord.col==0)||(coord.col==(tope-1))){
-		return true;
-	}else{
-		return false;
-	}
-}
 void pedir_entrada(coordenada_t camino[], int* tope_camino, int tope_campo){
 	coordenada_t coord_aux;
 	printf("Asignar la ENTRADA: \n");
@@ -423,8 +428,8 @@ void pedir_entrada(coordenada_t camino[], int* tope_camino, int tope_campo){
   scanf("%i", &coord_aux.fil);
 	printf("COLUMNA:");
   scanf("%i", &coord_aux.col);
-	while (es_vertice(coord_aux.fil, coord_aux.col, tope_campo)||(!es_margen(coord_aux, tope_campo))){
-		printf("HA PUESTO LA ENTRADA EN UN VERTICE O DENTRO DEL CAMPO, INGRESE NUEVAMENTE: \n");
+	while (es_vertice(coord_aux.fil, coord_aux.col, tope_campo)||(!es_margen(coord_aux.fil, coord_aux.col, tope_campo))){
+		printf("HA PUESTO LA ENTRADA EN UN VERTICE, DENTRO DEL CAMPO o FUERA DE ÉL, INGRESE NUEVAMENTE: \n");
 		printf("FILA:");
 	  scanf("%i", &coord_aux.fil);
 		printf("COLUMNA:");
@@ -435,22 +440,30 @@ void pedir_entrada(coordenada_t camino[], int* tope_camino, int tope_campo){
 	*(tope_camino)=1;
   printf("ENTRADA=(%i;%i)\n", camino[*tope_camino-1].fil, camino[*tope_camino-1].col);
 }
-void pedir_coordenada(coordenada_t camino[], int* tope_camino, int tope_campo){
-    char direccion;
+bool cumple_direccion(char direccion){
+  return((direccion==IZQ)||(direccion==DER)||(direccion==ABAJO)||(direccion==ARRIBA));
+}
+void pedir_direccion(coordenada_t coord_anterior, coordenada_t* nueva_coord){
+  char direccion;
+  printf("DIRECCION:");
+  scanf(" %c", &direccion);
+  while(!cumple_direccion(direccion)){
+    printf("DIRECCION ERRONEA (recuerda: wasd!)\n");
+    printf("DIRECCION:");
+    scanf(" %c", &direccion);
+  }
+  nueva_coord->fil=direccion_fila(direccion, coord_anterior.fil);
+  nueva_coord->col=direccion_columna(direccion, coord_anterior.col);
+}
+void pedir_nueva_coordenada(coordenada_t camino[], int* tope_camino, int tope_campo){
     coordenada_t coord_aux;
     coordenada_t coord_anterior;
     coord_anterior.fil=camino[*tope_camino-1].fil;
     coord_anterior.col=camino[*tope_camino-1].col;
-    printf("DIRECCION:");
-		scanf(" %c", &direccion);
-    coord_aux.fil=direccion_fila(direccion, coord_anterior.fil);
-		coord_aux.col=direccion_columna(direccion, coord_anterior.col);
+    pedir_direccion(coord_anterior, &coord_aux);
     while (((*tope_camino)>1)&&(!cumple_condiciones(coord_aux, camino[*tope_camino-2], tope_campo))){
-        printf("VOLVISTE PARA ATRAS o SALISTE DEL MAPA!!\n");
-				printf("DIRECCION:");
-				scanf(" %c", &direccion);
-		    coord_aux.fil=direccion_fila(direccion, coord_anterior.fil);
-				coord_aux.col=direccion_columna(direccion, coord_anterior.col);
+      printf("VOLVISTE PARA ATRAS o SALISTE DEL MAPA!!\n");
+			pedir_direccion(coord_anterior, &coord_aux);
     }
 		camino[*tope_camino].fil=coord_aux.fil;
 		camino[*tope_camino].col=coord_aux.col;
@@ -467,8 +480,8 @@ bool camino_terminado(coordenada_t ultima_coord, int modo_camino, int limite){
 	}
 }
 void titular_archivo_camino(FILE* archivo, int nivel, int camino){
-  fprintf(archivo, FORMATO_CREAR_CAMINO, CLAVE_NIVEL, (nivel+1));
-  fprintf(archivo, FORMATO_CREAR_CAMINO, CLAVE_CREAR_CAMINO, camino);
+  fprintf(archivo, FORMATO_CREAR_CAMINO_ESCRITURA, CLAVE_NIVEL, (nivel+1));
+  fprintf(archivo, FORMATO_CREAR_CAMINO_ESCRITURA, CLAVE_CREAR_CAMINO, camino);
 }
 int modo_camino(coordenada_t entrada, int tope_campo, int* limite){
 	if(entrada.col==0){
@@ -511,7 +524,7 @@ void pedir_camino(FILE* archivo, int nivel, int n_camino, int tope_campo){
     while (!camino_terminado((camino[tope_camino-1]), forma_camino, limite)){
 			titular_el_campo(nivel, n_camino, forma_camino);
       mostrar_caminos(camino, tope_camino, tope_campo, forma_camino, limite);
-      pedir_coordenada(camino, &tope_camino, tope_campo);
+      pedir_nueva_coordenada(camino, &tope_camino, tope_campo);
       system("clear");
     }
 		titular_archivo_camino(archivo, nivel, n_camino);
@@ -533,7 +546,7 @@ void crear_caminos(char* argv[]){
     }else{
       for (int nivel = NIVEL_1; nivel < MAX_NIVELES; nivel++) {
         system("clear");
-        printf("Advertencia: Las ENTRADAS de los caminos se ubican en la COLUMNA 0 y las TORRES se ubicaran en la ÚLTIMA COLUMNA\n");
+        printf("Advertencia: Las ENTRADAS se ubican en los MÁRGENES y las TORRES en el lado OPUESTO a la entrada\n");
         printf("HERRAMIENTAS: 'wasd'(en minuscula) para mover el camino\n");
         if(nivel==NIVEL_1){
           pedir_camino(archivo_camino, nivel, CAMINO_1, TOPE_CAMPO_1);
@@ -600,28 +613,24 @@ void poneme_la_repe(char* argv[]){
   }
 }
 /*
-*FALLA
-*Analisis: Calcula la cantidad de orcos muertos(no funciona) y los va sumando al ranking
+*Analisis: Calcula la cantidad de orcos muertos segun el nivel actual y los va sumando al ranking
+*
 */
 void calcular_orcos_muertos(juego_t juego, int* orcos){
+  int contador=0;
   for(int pos=0; pos<juego.nivel.tope_enemigos; pos++){
-    if(juego.nivel.enemigos[pos].vida==0){
-      *orcos=*orcos+1;
+    if(juego.nivel.enemigos[pos].vida <= 0){
+      contador++;
     }
   }
-}
-/*
-*Analisis: Escribe al final del archivo ranking (chequeando si abre) el usuario y su puntuacion final
-*Pre: Nombre del archivo de ranking ya cargado a un string y ranking con el puntaje y usuario
-*Post: Archivo con datos del ranking al final del mismo o advertencia si no abre el archivo
-*/
-void guardar_en_ranking(char direc_ranking[], ranking_t ranking){
-  FILE* archivo_ranking=fopen(direc_ranking, "a");
-  if(!archivo_ranking){
-    printf("No se pudo abrir el archivo\n");
-  }else{
-    fprintf(archivo_ranking, FORMATO_RANKING_ESCRITURA, ranking.usuario, ranking.puntos);
-    fclose(archivo_ranking);
+  if (juego.nivel_actual==NIVEL_1){
+    *orcos=contador;
+  }else if (juego.nivel_actual==NIVEL_2){
+    *orcos=contador+ORCOS_NVL_1;
+  }else if (juego.nivel_actual==NIVEL_3){
+    *orcos=contador+ORCOS_NVL_1+ORCOS_NVL_2;
+  }else if (juego.nivel_actual==NIVEL_4){
+    *orcos=contador+ORCOS_NVL_1+ORCOS_NVL_2+ORCOS_NVL_3;
   }
 }
 /*
@@ -720,11 +729,6 @@ void ranking(char* argv[]){
     }
   }
 }
-/*
-*Analisis:
-*Pre:
-*Post:
-*/
 void obtener_lista(char direc_ranking[], ranking_t lista[], int* tope_lista) {
   FILE* archivo_ranking=fopen(direc_ranking, "r");
   if(!archivo_ranking){
@@ -740,11 +744,6 @@ void obtener_lista(char direc_ranking[], ranking_t lista[], int* tope_lista) {
     fclose(archivo_ranking);
   }
 }
-/*
-*Analisis:
-*Pre:
-*Post:
-*/
 void intercambiar_valores_ranking(ranking_t* primero, ranking_t* segundo){
   ranking_t auxiliar;
   auxiliar.puntos=primero->puntos;
@@ -754,12 +753,7 @@ void intercambiar_valores_ranking(ranking_t* primero, ranking_t* segundo){
   segundo->puntos=auxiliar.puntos;
   strcpy(segundo->usuario, auxiliar.usuario);
 }
-/*
-*Analisis:
-*Pre:
-*Post:
-*/
-void ordenar_lista(ranking_t lista[], int tope_lista){
+void ordenar_lista(ranking_t lista[], int tope_lista, ranking_t ranking){
   for (int i = 0; i < tope_lista; i++) {
     for (int j = 0; j < (tope_lista-i); j++) {
       if(lista[j].puntos<lista[j+1].puntos){
@@ -772,17 +766,12 @@ void ordenar_lista(ranking_t lista[], int tope_lista){
     }
   }
 }
-/*
-*Analisis:
-*Pre:
-*Post:
-*/
 void reescribir_ranking(ranking_t lista[], int tope_lista, char direc_ranking[]){
   FILE* nuevo_ranking=fopen("nuevo_ranking.txt", "w");
   if(!nuevo_ranking){
-    printf("No se pudo abrir el ranking para leerlo\n");
+    printf("No se pudo abrir el ranking para escribirlo\n");
   }else{
-    for (size_t i = 0; i < tope_lista; i++) {
+    for (int i = 0; i < tope_lista; i++) {
       fprintf(nuevo_ranking, FORMATO_RANKING_ESCRITURA, lista[i].usuario, lista[i].puntos);
     }
     fclose(nuevo_ranking);
@@ -795,18 +784,17 @@ void reescribir_ranking(ranking_t lista[], int tope_lista, char direc_ranking[])
 *Pre:
 *Post:
 */
-void ordenar_ranking(char direc_ranking[]){
+void insertar_en_ranking(char direc_ranking[], ranking_t ranking){
   ranking_t lista[MAX_RANKING];
   int tope_lista=0;
   obtener_lista(direc_ranking, lista, &tope_lista);
-  ordenar_lista(lista, tope_lista);
+  incertar_en_lista(lista, tope_lista, ranking);
   reescribir_ranking(lista, tope_lista, direc_ranking);
 }
 void actualizar_ranking(juego_t juego, ranking_t ranking, char config[]){
   char direc_ranking[MAX_DIRECCION];
   obtener_direc_ranking(config, direc_ranking);
-  guardar_en_ranking(direc_ranking, ranking);
-  ordenar_ranking(direc_ranking);
+  insertar_en_ranking(direc_ranking, ranking);
 }
 void calcular_puntaje(juego_t juego, configuracion_t config, ranking_t* ranking){
   int torre_1=config.torres.resistencia_torre_1;
@@ -818,6 +806,34 @@ void calcular_puntaje(juego_t juego, configuracion_t config, ranking_t* ranking)
   int denominador=(torre_1+torre_2+enanos_extra+elfos_extra+enanos_inicio+elfos_inicio);
   calcular_orcos_muertos(juego, &(ranking->orcos_muertos));
   ranking->puntos=(((ranking->orcos_muertos)*(MULTIPLICADOR))/(denominador));
+}
+void cargar_vector_camino(FILE* archivo, coordenada_t camino[], int* tope_camino){
+  int tope=0;
+  int posicion=0;
+  int leido=fscanf(archivo, FORMATO_COORDENADA, &(camino[posicion].fil), &(camino[posicion].col));
+  while(leido==2){
+    posicion++;
+    tope++;
+    leido=fscanf(archivo, FORMATO_COORDENADA, &(camino[posicion].fil), &(camino[posicion].col));
+  }
+  *tope_camino=tope;
+}
+/*
+*NO TERMINADA
+*Analisis: Lee el archivo de caminos y lo pasa al nivel que corresponde
+*/
+void cargar_camino(FILE* archivo, int nvl, int camino, nivel_t* nivel){
+  int nivel_archivo;
+  int camino_archivo;
+  fscanf(archivo, FORMATO_CREAR_CAMINO, &nivel_archivo, &camino_archivo);
+  while((nivel_archivo!=nvl)&&(camino_archivo!=camino)){
+    fscanf(archivo, FORMATO_CREAR_CAMINO, &nivel_archivo, &camino_archivo);
+  }
+  if(camino==CAMINO_1){
+    cargar_vector_camino(archivo, nivel->camino_1, &(nivel->tope_camino_1));
+  }else if (camino==CAMINO_2){
+    cargar_vector_camino(archivo, nivel->camino_2, &(nivel->tope_camino_2));
+  }
 }
 void configurar_camino_archivo(int nvl, nivel_t* nivel, configuracion_t configuracion){
   FILE* archivo_camino=fopen(configuracion.ruta_camino, "r");
@@ -896,6 +912,8 @@ int estado_programa(char argumento[]){
     return REPETICION;
   }else if(strcmp(argumento,"ranking")==0){
     return RANKING;
+  }else if(strcmp(argumento,"--help")==0){
+    return HELP;
   }else{
     return ERROR;
   }
@@ -932,6 +950,19 @@ void cargar_confirguracion (configuracion_t* configuracion, int modo, char nombr
     }
   }
 }
+void mostrar_ayuda(){
+  printf("COMANDOS:\n");
+  printf(COLOR_CYAN"* crear_configuracion\n"COLOR_RESET);
+  printf("    <nombre del archivo a crear>    (obligatorio)\n");
+  printf(COLOR_CYAN"* crear_caminos \n"COLOR_RESET);
+  printf("    <nombre del archivo a crear>    (obligatorio)\n");
+  printf(COLOR_CYAN"* poneme_la_repe \n"COLOR_RESET);
+  printf("    grabacion=<nombre del archivo de la repeticion>   (obligatorio)\n    velocidad=<numero entero o racional positivo>   (opcional)(1 por defecto)\n");
+  printf(COLOR_CYAN"* ranking \n"COLOR_RESET);
+  printf("    listar=<cantidad de jugadores para ver>   (opcional)(todos por defecto)\n    config=<nombre de la configuracion>   (opcional)(standard por defecto)\n");
+  printf(COLOR_CYAN"* jugar \n"COLOR_RESET);
+  printf("    config=<nombre de la configuracion>   (opcional)(standard por defecto)\n    grabacion=<archivo para guardar la repeticion>   (opcional)(no se graba por defecto)\n");
+}
 void comandos(int programa, char* argv[]){
   if(programa == CREAR_CONFIGURACION){
     crear_configuracion(argv);
@@ -941,5 +972,7 @@ void comandos(int programa, char* argv[]){
     poneme_la_repe(argv);
   }else if (programa == RANKING){
     ranking(argv);
+  }else if (programa == HELP){
+    mostrar_ayuda();
   }
 }

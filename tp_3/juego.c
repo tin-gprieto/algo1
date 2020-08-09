@@ -91,10 +91,10 @@ void mostrar_inicio(char configuracion[], char grabacion[], configuracion_t conf
 	printf("-ENANOS_ANIMO: %i %i\n", config.fallo_gimli, config.critico_gimli);
 	printf("-ELFOS_ANIMO: %i %i\n", config.fallo_legolas, config.critico_legolas );
 	printf("-VELOCIDAD: %f \n", config.velocidad);
-	if(config.es_aleatoreo){
-			printf("CAMINOS ALEATORIOS\n");
+	if(config.hay_caminos){
+			printf("-RUTA CAMINO: %s \n", config.ruta_camino);
 	}else{
-		printf("-RUTA CAMINO: %s \n", config.ruta_camino);
+		printf("CAMINOS ALEATORIOS\n");
 	}
 	detener_el_tiempo(2);
 }
@@ -421,7 +421,11 @@ void inicializar_niveles(estructura_t estructura[MAX_NIVELES], configuracion_t c
 		campo_t campo_aux;
 		nivel_t nivel_aux;
 		configurar_campo(nivel, &campo_aux, config);
-		configurar_camino_aleatorio(nivel ,&nivel_aux, &campo_aux);
+		if(config.hay_caminos){
+			configurar_camino_archivo(nivel, &nivel_aux, config);
+		}else{
+			configurar_camino_aleatorio(nivel ,&nivel_aux, &campo_aux);
+		}
 		estructura[nivel].nivel=nivel_aux;
 		estructura[nivel].campo=campo_aux;
 		if (nivel==NIVEL_1){
@@ -517,11 +521,11 @@ int main (int argc, char* argv[]){
 			}
 			return 0;
 		}else{
-			printf("Hubo un error con los comandos, revisar si se ingresó correctamente.\n");
+			printf("Hubo un error con los comandos, revisar si se ingresó correctamente.\n Más informacion comando '--help'.\n");
 			return -1;
 		}
 	}else{
-		printf("No ingresaste ningun comando\n");
+		printf("No ingresaste ningun comando\n Más informacion comando '--help'.\n");
 		return -1;
 	}
 }

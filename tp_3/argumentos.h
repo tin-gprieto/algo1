@@ -10,6 +10,7 @@
 #define CREAR_CAMINOS 2
 #define REPETICION 3
 #define RANKING 4
+#define HELP 5
 #define ERROR -1
 #define STANDARD_SIN_GRABAR 0
 #define STANDARD_GRABANDO 1

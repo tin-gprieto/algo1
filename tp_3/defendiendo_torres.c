@@ -183,33 +183,33 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 	printf("ENANOS EXTRA:  %i      ELFOS EXTRA: %i  \n", enanos_extra, elfos_extra);
 	if((juego.nivel_actual==NIVEL_1)||(juego.nivel_actual==NIVEL_2)){
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
-		printf("==-|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||=-==\n");
 	}
 	if((juego.nivel_actual==NIVEL_3)||(juego.nivel_actual==NIVEL_4)){
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
-		printf("==-|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
 	}
 
 		for (int i=0; i < tope_campo; i++){
 			if (i>=10)
-					printf(" %i||", i);
+					printf(" |%i| ", i);
 				else
-					printf(" 0%i||", i);
+					printf(" |0%i| ", i);
 			for (int j=0; j < tope_campo; j++){
 				printf(" %c ", campo_de_batalla[i][j]);
 			}
 			if (i>=10)
-					printf("||%i||\n", i);
+					printf(" |%i| \n", i);
 				else
-					printf("||0%i||\n", i);
+					printf(" |0%i| \n", i);
 		}
 
 	if((juego.nivel_actual==NIVEL_1)||(juego.nivel_actual==NIVEL_2)){
-		printf("==-|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||=-==\n");
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
 	}
 	if ((juego.nivel_actual==NIVEL_3)||(juego.nivel_actual==NIVEL_4)){
-		printf("==-|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
 	}
 }
@@ -547,26 +547,26 @@ int agregar_defensor(nivel_t* nivel, coordenada_t posicion, char tipo){
 void jugar_turno(juego_t* juego){
 	switch(juego->nivel_actual){
 		case NIVEL_1:
-		atacar_con_enanos_campo_1(juego, juego->nivel.camino_1);
-		mover_orcos(juego);
-		agregar_orco(juego);
+			atacar_con_enanos_campo_1(juego, juego->nivel.camino_1);
+			mover_orcos(juego);
+			agregar_orco(juego);
 		break;
 		case NIVEL_2:
-		atacar_con_elfos_campo_1(juego, juego->nivel.camino_2);
-		agregar_orco(juego);
-		mover_orcos(juego);
+			atacar_con_elfos_campo_1(juego, juego->nivel.camino_2);
+			agregar_orco(juego);
+			mover_orcos(juego);
 		break;
 		case NIVEL_3:
-		atacar_con_enanos_campo_2(juego);
-		atacar_con_elfos_campo_2(juego);
-		mover_orcos(juego);
-		agregar_orco(juego);
+			atacar_con_enanos_campo_2(juego);
+			atacar_con_elfos_campo_2(juego);
+			mover_orcos(juego);
+			agregar_orco(juego);
 		break;
 		case NIVEL_4:
-		atacar_con_enanos_campo_2(juego);
-		atacar_con_elfos_campo_2(juego);
-		mover_orcos(juego);
-		agregar_orco(juego);
+			atacar_con_enanos_campo_2(juego);
+			atacar_con_elfos_campo_2(juego);
+			mover_orcos(juego);
+			agregar_orco(juego);
 		break;
 	}
 }
