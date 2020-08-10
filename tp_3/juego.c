@@ -114,25 +114,27 @@ void mostrar_nvl_ganado(juego_t juego){
 /*
 *Mustra por pantalla el juego perdido
 */
-void mostrar_juego_perdido(){
+void mostrar_juego_perdido(ranking_t ranking){
 	system("clear");
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n\n\n\n\n\n\n");
 	printf("                        -------------------\n");
 	printf("                             GAME OVER\n");
-	printf("                        -------------------\n\n\n\n\n\n\n\n\n");
+	printf("                        -------------------\n");
+	printf("                         %s      %i PTS\n\n\n\n\n\n\n\n", ranking.usuario, ranking.puntos);
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
-	detener_el_tiempo(2);
+	detener_el_tiempo(3);
 	system("clear");
 }
 /*
 *Mustra por pantalla el juego ganado
 */
-void mostrar_juego_ganado(){
+void mostrar_juego_ganado(ranking_t ranking){
 	system("clear");
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n\n\n\n\n\n\n");
 	printf("                        -------------------\n");
 	printf("                        HAS GANADO EL JUEGO\n");
-	printf("                        -------------------\n\n\n\n\n\n\n\n\n");
+	printf("                        -------------------\n");
+	printf("                         %s      %i PTS\n\n\n\n\n\n\n\n", ranking.usuario, ranking.puntos);
 	printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-== \n");
 	detener_el_tiempo(2);
 	system("clear");
@@ -208,29 +210,30 @@ bool posicion_valida(coordenada_t posicion, int coordenada_max){
 	return (posicion.fil < coordenada_max) && (posicion.col < coordenada_max);
 }
 /*
+*Analisis:
+*Pre:
+*Post:
+*/
+void pedir_posicion_def(char defensor[], char tipo, int cantidad_min, int cantidad_puesta, coordenada_t* posicion){
+	printf("%sS para añadir: %i \n", defensor, cantidad_min - cantidad_puesta );
+	printf("Añadir %s ( %c ) n° %i: \n", defensor, tipo, cantidad_puesta + 1);
+	printf("Fila:");
+	scanf("%i", &(posicion->fil));
+	printf("Columna:");
+	scanf("%i", &(posicion->col));
+}
+/*
 *Análsis: Pregunta al usuario la posicion del defensor y lo agrega si su posicion es válida (No excede las dimensiones del campo ni coincide con otro defensor)
 *Pre: Tipo válido ('G' o 'L')
 *Post: Defensor agregado (hasta que se introduzcan bien los datos)
 */
 void pedir_defesores(juego_t* juego, char defensor[MAX_LETRAS_DEFENSOR], char tipo, int cantidad_min, int coordenada_max){
-
 	coordenada_t posicion;
-
 	for (int i = 0; i < cantidad_min; ++i){
-		printf("%sS para añadir: %i \n", defensor, cantidad_min - i );
-		printf("Añadir %s ( %c ) n° %i: \n", defensor, tipo, i + 1);
-		printf("Fila:");
-		scanf("%i", &posicion.fil);
-		printf("Columna:");
-		scanf("%i", &posicion.col);
+			pedir_posicion_def(defensor, tipo, cantidad_min, i, &posicion);
 			while (agregar_defensor(&juego->nivel, posicion, tipo) != 0 || !posicion_valida(posicion, coordenada_max)){
 				printf("POSICIÓN NO VÁLIDA, añadir nuevamente\n");
-				printf("%sS para añadir: %i \n", defensor, cantidad_min - i );
-				printf("Añadir %s ( %c ) n° %i: \n", defensor, tipo, i + 1);
-				printf("Fila:");
-				scanf("%i", &posicion.fil);
-				printf("Columna:");
-				scanf("%i", &posicion.col);
+				pedir_posicion_def(defensor, tipo, cantidad_min, i, &posicion);
 			}
 		system("clear");
 		mostrar_juego(*juego);
@@ -244,7 +247,6 @@ void pedir_defesores(juego_t* juego, char defensor[MAX_LETRAS_DEFENSOR], char ti
 */
 void asignar_defensores(juego_t* juego, campo_t campo){
 	char defensor [MAX_LETRAS_DEFENSOR];
-
 	if (campo.cantidad_enanos != 0){
 		strcpy(defensor, "ENANO");
 	    pedir_defesores(juego, defensor, ENANO, campo.cantidad_enanos, campo.tope);
@@ -267,6 +269,21 @@ bool hay_bonificacion(juego_t juego, campo_t campo){
 	}
 }
 /*
+*Analisis:
+*Pre:
+*Post:
+*/
+void quitar_resistecia_torres(juego_t* juego, int costo[]){
+	if(juego->nivel_actual == NIVEL_1){
+		juego->torres.resistencia_torre_1 -= costo[TORRE_1];
+	}else if (juego->nivel_actual == NIVEL_2){
+		juego->torres.resistencia_torre_2 -= costo[TORRE_2];
+	}else if ((juego->nivel_actual == NIVEL_3) || (juego->nivel_actual == NIVEL_4)){
+		juego->torres.resistencia_torre_1 -= costo[TORRE_1];
+		juego->torres.resistencia_torre_2 -= costo[TORRE_2];
+	}
+}
+/*
 *Análsis: Agrega un defensor con pedir_defensores y deja al juego en su estado correspondiente
 *Pre: Tipo debe ser válido ('L' o 'G'), tope correspondiente al campo del nivel
 *Post: Defensor agregado y el juego con sus valores cambiados
@@ -274,35 +291,90 @@ bool hay_bonificacion(juego_t juego, campo_t campo){
 void agregar_def_extra(juego_t* juego, campo_t campo, char tipo, char defensor[MAX_LETRAS_DEFENSOR], int tope){
 		pedir_defesores(juego, defensor, tipo, 1, tope);
 		if (tipo == ENANO){
-			if(juego->nivel_actual==NIVEL_1){
-				juego->torres.resistencia_torre_1 -= campo.costo_G_extra[TORRE_1];
-				juego->torres.enanos_extra --;
-			}else if(juego->nivel_actual==NIVEL_3 || juego->nivel_actual==NIVEL_4 ){
-				juego->torres.resistencia_torre_1 -= campo.costo_G_extra[TORRE_1];
-				juego->torres.resistencia_torre_2 -= campo.costo_G_extra[TORRE_2];
-				juego->torres.enanos_extra --;
-			}
+			quitar_resistecia_torres(juego, campo.costo_G_extra);
+			juego->torres.enanos_extra --;
 		}else if (tipo == ELFO){
-			if(juego->nivel_actual==NIVEL_2){
-				juego->torres.resistencia_torre_2 -= campo.costo_L_extra[TORRE_2];
-				juego->torres.elfos_extra --;
-			}else if(juego->nivel_actual==NIVEL_3 || juego->nivel_actual==NIVEL_4 ){
-				juego->torres.resistencia_torre_1 -= campo.costo_L_extra[TORRE_1];
-				juego->torres.resistencia_torre_2 -= campo.costo_L_extra[TORRE_2];
-				juego->torres.elfos_extra --;
-			}
+			quitar_resistecia_torres(juego, campo.costo_L_extra);
+			juego->torres.elfos_extra --;
 		}
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+bool estado_costo(juego_t juego, int costo[]){
+	if((juego.nivel_actual == NIVEL_1) && (costo[TORRE_1] != 0)){
+		return true;
+	}else if ((juego.nivel_actual == NIVEL_2) && (costo[TORRE_2] != 0)){
+		return true;
+	}else if((juego.nivel_actual == NIVEL_3) || (juego.nivel_actual == NIVEL_4)){
+		return true;
+	}else{
+		return false;
+	}
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+bool tipo_correcto(char tipo, juego_t juego, campo_t campo){
+	if (tipo == ENANO){
+		return estado_costo(juego, campo.costo_G_extra);
+	}else if(tipo == ELFO){
+		return estado_costo(juego, campo.costo_L_extra);
+	}else{
+		return false;
+	}
 }
 /*
 *Análsis: Pregunta el tipo de defensor que el usuario quiera agregar
 *Pre: Debe querer agregar un defensor y el nivel_actual debe ser 3 o 4
 *Post: Caracter del tipo por referiencia
 */
-void preguntar_tipo (char* tipo){
+void preguntar_tipo (char* tipo, juego_t juego, campo_t campo){
 	char eleccion;
 	printf("Introduzca el tipo ('%c' para ELFO o '%c' para ENANO):", ELFO, ENANO);
 	scanf(" %c", &eleccion);
+	while(!tipo_correcto(eleccion, juego, campo)){
+			printf(" EL TIPO DE DEFENSOR NO ES CORRECTO, intente nuevamente...\n");
+			if((juego.nivel_actual == NIVEL_1) || (juego.nivel_actual == NIVEL_2)){
+				printf(" (recordá que si no hace daño a la torre del nivel no es válido)\n");
+			}
+			printf("Introduzca el tipo ('%c' para ELFO o '%c' para ENANO):", ELFO, ENANO);
+			scanf(" %c", &eleccion);
+	}
 	*tipo=eleccion;
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+bool desicion_valida(char desicion){
+	return ((desicion == SI) || (desicion == NO));
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+void preguntar_decision(char* desicion, campo_t campo){
+	char aux;
+	printf(" PENALIZACION  |   TORRE 1   |   TORRE 2   \n");
+	printf("_______________|_____________|_____________\n");
+	printf("    ENANOS     |     %i      |     %i       \n", campo.costo_G_extra[TORRE_1], campo.costo_G_extra[TORRE_2]);
+	printf("    ELFOS      |     %i      |     %i       \n", campo.costo_L_extra[TORRE_1], campo.costo_L_extra[TORRE_2]);
+	printf("-------------------------------------------\n");
+	printf("¿Desea agregar un defensor extra?(%c/%c):", SI, NO);
+	scanf(" %c", &aux);
+	while(!desicion_valida(aux)){
+		printf("La desicion no es correcta, recordá %c/%c ...\n", SI, NO);
+		printf("¿Desea agregar un defensor extra?(%c/%c):", SI, NO);
+		scanf(" %c", &aux);
+	}
+	(*desicion)=aux;
 }
 /*
 *Análsis: Pregunta por un defensor extra según el nivel que corresponda (tipo y periodicidad)
@@ -312,47 +384,37 @@ void preguntar_tipo (char* tipo){
 void bonificar_con_defesor(juego_t* juego, campo_t campo){
 	char desicion;
 	char defensor[MAX_LETRAS_DEFENSOR];
-	if ((juego->nivel_actual==NIVEL_1)&&(juego->torres.enanos_extra > 0)){
-		strcpy(defensor, "ENANO");
-		printf("¿Desea agregar un %s extra? (costo: 50 salud de torre)(%c/%c):", defensor, SI, NO);
-		scanf(" %c", &desicion);
+	if ((juego->torres.enanos_extra > 0) || (juego->torres.elfos_extra > 0)){
+		char tipo;
+		preguntar_decision(&desicion, campo);
 		if (desicion==SI){
-			agregar_def_extra(juego, campo, ENANO, defensor, campo.tope);
-			system("clear");
-		}
-	}else if ((juego->nivel_actual==NIVEL_2) && (juego->torres.elfos_extra > 0)){
-		strcpy(defensor, "ELFO");
-		printf("¿Desea agregar un %s extra? (costo: 50 salud de torre)(%c/%c):", defensor, SI, NO);
-		scanf(" %c", &desicion);
-		if (desicion==SI){
-			agregar_def_extra(juego, campo, ELFO, defensor, campo.tope);
-			system("clear");
-		}
-	}else if ((juego->nivel_actual==NIVEL_3) || (juego->nivel_actual==NIVEL_4)){
-		if ((juego->torres.enanos_extra > 0) || (juego->torres.elfos_extra > 0)){
-			char tipo;
-			printf("¿Desea agregar un defensor extra? (costo: 50 salud de torre)(%c/%c):", SI, NO);
-			scanf(" %c", &desicion);
-			if (desicion==SI){
-				bool agrego_correctamente=false;
-				while (!agrego_correctamente){
-					preguntar_tipo(&tipo);
-					if ((tipo==ENANO)&&(juego->torres.enanos_extra > 0)){
-						strcpy(defensor, "ENANO");
-						agregar_def_extra(juego, campo, ENANO, defensor, campo.tope);
-						agrego_correctamente=true;
-					}else if ((tipo==ELFO)&&(juego->torres.elfos_extra > 0)){
-						strcpy(defensor, "ELFO");
-						agregar_def_extra(juego, campo, ELFO, defensor, campo.tope);
-						agrego_correctamente=true;
-					}else{
-						printf(" EL TIPO DE DEFENSOR NO ES CORRECTO, intente nuevamente...\n");
-					}
-				}
+			preguntar_tipo(&tipo, *juego, campo);
+			if ((tipo==ENANO)&&(juego->torres.enanos_extra > 0)){
+				strcpy(defensor, "ENANO");
+				agregar_def_extra(juego, campo, ENANO, defensor, campo.tope);
+			}else if ((tipo==ELFO)&&(juego->torres.elfos_extra > 0)){
+				strcpy(defensor, "ELFO");
+				agregar_def_extra(juego, campo, ELFO, defensor, campo.tope);
 			}
-		}else{
-			printf(" NO TIENES DEFENSORES EXTRA\n");
 		}
+	}else{
+		printf(" NO TIENES DEFENSORES EXTRA\n");
+	}
+}
+/*
+*Analisis:
+*Pre:
+*Post:
+*/
+void configurar_orcos_iniciales(int nivel, estructura_t* estructura){
+	if (nivel==NIVEL_1){
+		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_1;
+	}else if (nivel==NIVEL_2){
+		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_2;
+	}else if (nivel==NIVEL_3){
+		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_3;
+	}else if (nivel==NIVEL_4){
+		estructura->nivel.max_enemigos_nivel= ORCOS_NVL_4;
 	}
 }
 /*
@@ -393,8 +455,8 @@ void configurar_campo(int nivel, campo_t* campo, configuracion_t config){
 	campo->cantidad_elfos = config.cantidad_elfos[nivel];
 	campo->costo_G_extra[TORRE_1] = config.costo_G_extra[TORRE_1];
 	campo->costo_G_extra[TORRE_2] = config.costo_G_extra[TORRE_2];
-	campo->costo_L_extra[TORRE_1] = config.costo_G_extra[TORRE_1];
-	campo->costo_L_extra[TORRE_2] = config.costo_G_extra[TORRE_2];
+	campo->costo_L_extra[TORRE_1] = config.costo_L_extra[TORRE_1];
+	campo->costo_L_extra[TORRE_2] = config.costo_L_extra[TORRE_2];
 	if (nivel==NIVEL_1){
 		campo->tope = TOPE_CAMPO_1;
 		campo->bonificacion=EXTRA_1;
@@ -418,25 +480,13 @@ void inicializar_niveles(estructura_t estructura[MAX_NIVELES], configuracion_t c
 	for (int nivel=NIVEL_1; nivel<MAX_NIVELES; nivel++){
 		estructura[nivel].nivel.tope_enemigos=0;
 		estructura[nivel].nivel.tope_defensores=0;
-		campo_t campo_aux;
-		nivel_t nivel_aux;
-		configurar_campo(nivel, &campo_aux, config);
+		configurar_campo(nivel, &(estructura[nivel].campo), config);
 		if(config.hay_caminos){
-			configurar_camino_archivo(nivel, &nivel_aux, config);
+			configurar_camino_archivo(nivel, &(estructura[nivel].nivel), config);
 		}else{
-			configurar_camino_aleatorio(nivel ,&nivel_aux, &campo_aux);
+			configurar_camino_aleatorio(nivel ,&(estructura[nivel].nivel), &(estructura[nivel].campo));
 		}
-		estructura[nivel].nivel=nivel_aux;
-		estructura[nivel].campo=campo_aux;
-		if (nivel==NIVEL_1){
-			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_1;
-		}else if (nivel==NIVEL_2){
-			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_2;
-		}else if (nivel==NIVEL_3){
-			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_3;
-		}else if (nivel==NIVEL_4){
-			estructura[nivel].nivel.max_enemigos_nivel= ORCOS_NVL_4;
-		}
+		configurar_orcos_iniciales(nivel, &(estructura[nivel]));
 	}
 }
 /*
@@ -513,12 +563,11 @@ int main (int argc, char* argv[]){
 				}
 			}
 			if (estado_juego(juego) == GANADO){
-				mostrar_juego_ganado();
-				actualizar_ranking(juego, ranking, archivo_config);
+				mostrar_juego_ganado(ranking);
 			}else if (estado_juego(juego) == PERDIDO){
-				mostrar_juego_perdido();
-				actualizar_ranking(juego, ranking, archivo_config);
+				mostrar_juego_perdido(ranking);
 			}
+			actualizar_ranking(juego, ranking, archivo_config);
 			return 0;
 		}else{
 			printf("Hubo un error con los comandos, revisar si se ingresó correctamente.\n Más informacion comando '--help'.\n");

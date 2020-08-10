@@ -34,20 +34,35 @@ typedef struct ranking{
 	int orcos_muertos;
 } ranking_t;
 /*
-*NO TERMINADA (contador de orcos está mal)
-*Analisis: Calcula el puntaje segun la configuracion y la cantidad de orcos muertos(no funciona)(la carga al ranking)
+*Analisis: Calcula el puntaje segun la configuracion y la cantidad de orcos muertos
+*Pre:
+*Post:
 */
 void calcular_puntaje(juego_t juego, configuracion_t config, ranking_t* ranking);
 /*
-* NO TERMINADA (no funciona el orden alfabetico)
 *Analisis: Calcula los puntos y actualiza el archivo del ranking segun la configuracion
+*Pre:
+*Post:
 */
 void actualizar_ranking(juego_t juego, ranking_t ranking, char config[]);
 /*
-*NO TERMINADA
+*Analisis: Segun el archivo pasado por el usuario guarda el estado del juego
+*Pre: El modo de juego debe ser GRABANDO y haber pasado el archivo de grabacion correctamente
+*Post: Advertencia si no se abre el archivo o archivo de texto actualizado con el ultimo turno
+*/
+void guardar_partida(juego_t juego, char grabacion[]);
+/*
 *Analisis: Abre el archivo de caminos y carga su informacion al nivel
+*Pre:
+*Post:
 */
 void configurar_camino_archivo(int nvl, nivel_t* nivel, configuracion_t configuracion);
+/*
+*Analisis: Segun el modo del juego carga la informacion de un archivo de txt a la configuracion
+*Pre: Modo de juego calculado con el nombre del archivo de configuracion
+*Post: Configuracion cargada
+*/
+void cargar_confirguracion(configuracion_t* configuracion, int modo, char config[]);
 /*
 *Analisis: Evalua si estan los archivos obligatorios segun el modo del programa
 *Pre: Modo del progrma calculado
@@ -66,18 +81,6 @@ int modo_juego(char* argv[], char config[], char grabacion[]);
 *Post: Estado (JUGAR, CREAR_CONFIGURACION, CREAR_CAMINOS, REPETICION, RANKING, ERROR(si no se pasa ningun comando))
 */
 int estado_programa(char argumento[]);
-/*
-*Analisis: Segun el archivo pasado por el usuario guarda el estado del juego
-*Pre: El modo de juego debe ser GRABANDO y haber pasado el archivo de grabacion correctamente
-*Post: Advertencia si no se abre el archivo o archivo de texto actualizado con el ultimo turno
-*/
-void guardar_partida(juego_t juego, char grabacion[]);
-/*
-*Analisis: Segun el modo del juego carga la informacion de un archivo de txt a la configuracion
-*Pre: Modo de juego calculado con el nombre del archivo de configuracion
-*Post: Configuracion cargada
-*/
-void cargar_confirguracion(configuracion_t* configuracion, int modo, char config[]);
 /*
 *Analisis: Segun los comandos introducidos por el usuario devuelve el modo ejecutado (exceptuando jugar) o rechazado(si no cumple con los archivos)
 *Pre: Estado del programa calculado

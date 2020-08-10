@@ -39,6 +39,9 @@ const char TORRE = 'T';
 #define NIVEL_3 2
 #define NIVEL_4 3
 
+#define CAMINO_1 1
+#define CAMINO_2 2
+
 #define GANADO 1
 #define JUGANDO 0
 #define PERDIDO -1
@@ -120,7 +123,31 @@ void asignar_enemigos(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_C
 				campo_de_batalla[juego.nivel.camino_2[juego.nivel.enemigos[i].pos_en_camino].fil][juego.nivel.camino_2[juego.nivel.enemigos[i].pos_en_camino].col]= ORCO;
 		}
 	}
-
+}
+/*
+*Análsis: Le resta la salud a la torre y posteriormente le quita la vida al enemigo
+*Pre: El enemigo tiene que estar en la torre
+*Post: Salud de la torre actualizada si llega un enemigo y enemigo con vida 0
+*/
+void restar_salud_torre(int* resistencia_torre, int* vida_enemigo){
+	(*resistencia_torre) -= *vida_enemigo;
+	(*vida_enemigo) = 0;
+}
+/*
+*Análsis: Evalua si el enemigo pasado por parametro está en la torre
+*Pre: -
+*Post: Verdadero si su posicion está al final del camino
+*/
+bool esta_en_torre(enemigo_t enemigo, int tope_camino){
+	return (enemigo.pos_en_camino == tope_camino - 1);
+}
+/*
+*Análsis: Evalua si tiene vida el enemigo pasado por parametro
+*Pre: -
+*Post: Verdadero si tiene vida
+*/
+bool esta_vivo(enemigo_t enemigo){
+	return (enemigo.vida > 0);
 }
 /*
 *Análsis: Mueve a todos los orcos según el camino en el que estén y si están en la torre hacen daño
@@ -129,23 +156,19 @@ void asignar_enemigos(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_C
 */
 void mover_orcos(juego_t* juego){
 	for (int i = 0; i < juego->nivel.tope_enemigos; i++){
-		if (juego->nivel.enemigos[i].vida > 0){
+		if (esta_vivo(juego->nivel.enemigos[i])){
 			juego->nivel.enemigos[i].pos_en_camino++;
-			if (juego->nivel.enemigos[i].camino==1){
-				if ((juego->nivel.enemigos[i].pos_en_camino == juego->nivel.tope_camino_1 - 1)){
-					juego->torres.resistencia_torre_1= juego->torres.resistencia_torre_1 - juego->nivel.enemigos[i].vida;
-					juego->nivel.enemigos[i].vida = 0;
+			if (juego->nivel.enemigos[i].camino==CAMINO_1){
+				if (esta_en_torre(juego->nivel.enemigos[i], juego->nivel.tope_camino_1)){
+					restar_salud_torre(&(juego->torres.resistencia_torre_1), &(juego->nivel.enemigos[i].vida));
 				}
-			}else if (juego->nivel.enemigos[i].camino==2){
-				if ((juego->nivel.enemigos[i].pos_en_camino == juego->nivel.tope_camino_2 - 1)){
-					juego->torres.resistencia_torre_2= juego->torres.resistencia_torre_2 - juego->nivel.enemigos[i].vida;
-					juego->nivel.enemigos[i].vida = 0;
+			}else if (juego->nivel.enemigos[i].camino==CAMINO_2){
+				if (esta_en_torre(juego->nivel.enemigos[i], juego->nivel.tope_camino_2)){
+					restar_salud_torre(&(juego->torres.resistencia_torre_2), &(juego->nivel.enemigos[i].vida));
 				}
 			}
 		}
 	}
-
-
 }
 /*
 *Imprime por pantalla los valores del juego y el tablero del campo
@@ -183,33 +206,35 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 	printf("ENANOS EXTRA:  %i      ELFOS EXTRA: %i  \n", enanos_extra, elfos_extra);
 	if((juego.nivel_actual==NIVEL_1)||(juego.nivel_actual==NIVEL_2)){
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
-		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||-==\n");
 	}
 	if((juego.nivel_actual==NIVEL_3)||(juego.nivel_actual==NIVEL_4)){
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
-		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||-==\n");
 	}
-
 		for (int i=0; i < tope_campo; i++){
 			if (i>=10)
 					printf(" |%i| ", i);
 				else
 					printf(" |0%i| ", i);
 			for (int j=0; j < tope_campo; j++){
-				printf(" %c ", campo_de_batalla[i][j]);
+				if(campo_de_batalla[i][j]==FONDO){
+					printf(" %c ", campo_de_batalla[i][j]);
+				}else{
+					printf(" %c ", campo_de_batalla[i][j]);
+				}
 			}
 			if (i>=10)
 					printf(" |%i| \n", i);
 				else
 					printf(" |0%i| \n", i);
 		}
-
 	if((juego.nivel_actual==NIVEL_1)||(juego.nivel_actual==NIVEL_2)){
-		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14||-==\n");
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
 	}
 	if ((juego.nivel_actual==NIVEL_3)||(juego.nivel_actual==NIVEL_4)){
-		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||=-==\n");
+		printf("==-=|| 00-01-02-03-04-05-06-07-08-09-10-11-12-13-14-15-16-17-18-19||-==\n");
 		printf("==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==-==\n");
 	}
 }
@@ -221,12 +246,10 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 bool estan_todos_muertos(nivel_t nivel){
 	bool estado=false;
 	int contador_de_orcos=0;
-	if (nivel.tope_enemigos>0){
-		for (int i = 0; i < nivel.tope_enemigos; ++i){
-			if (nivel.enemigos[i].vida <= 0)
-				contador_de_orcos ++;
-			}
-		}
+	for (int i = 0; i < nivel.tope_enemigos; ++i){
+		if (nivel.enemigos[i].vida <= 0)
+			contador_de_orcos ++;
+	}
 	if (contador_de_orcos == nivel.max_enemigos_nivel)
 		estado=true;
 	return estado;
@@ -251,7 +274,6 @@ bool posicion_valida_camino(coordenada_t camino [], int tope_camino, coordenada_
 */
 bool posicion_valida_defensores (defensor_t defensores[MAX_DEFENSORES], int tope_defensores, coordenada_t posicion){
 	bool estado= true;
-
 	for (int i = 0; i < tope_defensores; ++i){
 		if ((posicion.fil == defensores[i].posicion.fil)&&(posicion.col == defensores[i].posicion.col))
 			estado = false;
@@ -482,6 +504,11 @@ void atacar_con_elfos_campo_2(juego_t* juego){
 		}
 	}
 }
+void inicializar_orco(enemigo_t* enemigo, int camino){
+	enemigo->camino=camino;
+	enemigo->pos_en_camino=0;
+	enemigo->vida = VIDA_ORCO + (rand()%VIDA_EXTRA_MAX + 0);
+}
 /*
 *Análsis: Establece el camino, la posicion y la vida de un orco según el nivel (modificando el tope)
 *Pre: El nivel_actual debe se 1,2,3 o 4.
@@ -490,23 +517,16 @@ void atacar_con_elfos_campo_2(juego_t* juego){
 void agregar_orco(juego_t* juego){
 	srand((unsigned)time(NULL));
 	if (juego->nivel.tope_enemigos < juego->nivel.max_enemigos_nivel){
+		int tope_enemigos=juego->nivel.tope_enemigos;
 		if (juego->nivel_actual == NIVEL_1){
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].camino=1;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].pos_en_camino=0;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].vida = VIDA_ORCO + (rand()%VIDA_EXTRA_MAX + 0);
+			inicializar_orco(&(juego->nivel.enemigos[tope_enemigos]), CAMINO_1);
 			juego->nivel.tope_enemigos++;
 		}else if(juego->nivel_actual == NIVEL_2){
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].camino=2;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].pos_en_camino=0;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].vida = VIDA_ORCO + (rand()%VIDA_EXTRA_MAX + 0);
+			inicializar_orco(&(juego->nivel.enemigos[tope_enemigos]), CAMINO_2);
 			juego->nivel.tope_enemigos++;
 		}else if ((juego->nivel_actual == NIVEL_3)||(juego->nivel_actual == NIVEL_4)){
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].camino=1;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].pos_en_camino=0;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos + 1].camino=2;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos + 1].pos_en_camino=0;
-			juego->nivel.enemigos[juego->nivel.tope_enemigos].vida = VIDA_ORCO + (rand()%VIDA_EXTRA_MAX + 0);
-			juego->nivel.enemigos[juego->nivel.tope_enemigos + 1].vida = VIDA_ORCO + (rand()%VIDA_EXTRA_MAX + 0);
+			inicializar_orco(&(juego->nivel.enemigos[tope_enemigos]), CAMINO_1);
+			inicializar_orco(&(juego->nivel.enemigos[tope_enemigos + 1]), CAMINO_2);
 			juego->nivel.tope_enemigos += 2;
 		}
 	}
@@ -522,7 +542,7 @@ void inicializar_juego(juego_t* juego, configuracion_t config){
 int estado_juego(juego_t juego){
 	if (!estan_bien_las_torres(juego))
 		return PERDIDO;
-	if ((juego.nivel_actual == NIVEL_4) && estan_bien_las_torres(juego)){
+	if (juego.nivel_actual == NIVEL_4){
 		if (estan_todos_muertos(juego.nivel))
 			return GANADO;
 		else
@@ -548,27 +568,21 @@ void jugar_turno(juego_t* juego){
 	switch(juego->nivel_actual){
 		case NIVEL_1:
 			atacar_con_enanos_campo_1(juego, juego->nivel.camino_1);
-			mover_orcos(juego);
-			agregar_orco(juego);
 		break;
 		case NIVEL_2:
 			atacar_con_elfos_campo_1(juego, juego->nivel.camino_2);
-			agregar_orco(juego);
-			mover_orcos(juego);
 		break;
 		case NIVEL_3:
 			atacar_con_enanos_campo_2(juego);
 			atacar_con_elfos_campo_2(juego);
-			mover_orcos(juego);
-			agregar_orco(juego);
 		break;
 		case NIVEL_4:
 			atacar_con_enanos_campo_2(juego);
 			atacar_con_elfos_campo_2(juego);
-			mover_orcos(juego);
-			agregar_orco(juego);
 		break;
 	}
+	mover_orcos(juego);
+	agregar_orco(juego);
 }
 void mostrar_juego(juego_t juego){
 	char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMPO_COLUMNA];
