@@ -1,32 +1,15 @@
+/**
+ * @Date:   2020-08-10T17:17:20-03:00
+ * @Last modified time: 2020-08-10T19:45:16-03:00
+ */
+
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
 #include "defendiendo_torres.h"
-
-const int VELOCIDAD_ALTA = 75;
-const int VELOCIDAD_MEDIA = 50;
-const int VELOCIDAD_BAJA = 25;
-const int HUMEDAD_ALTA = 75;
-const int HUMEDAD_MEDIA = 50;
-const int HUMEDAD_BAJA = 25;
-const int VIDA_ORCO = 200;
-const int VIDA_EXTRA_MAX = 100;
-const int CRITICO_MALO = 0;
-const int CRITICO_REGULAR = 10;
-const int CRITICO_BUENO = 25;
-const int ATAQUE_ENANO = 60;
-const int ATAQUE_CRITICO_G =100;
-const int ATAQUE_ELFO = 30;
-const int ATAQUE_CRITICO_L = 70;
-const char MALO = 'M';
-const char REGULAR = 'R';
-const char BUENO = 'B';
-const char ORCO = 'O';
-const char CAMINO = ' ';
-const char FONDO = '"';
-const char ENTRADA = 'E';
-const char TORRE = 'T';
 
 #define ELFO 'L'
 #define ENANO 'G'
@@ -49,6 +32,32 @@ const char TORRE = 'T';
 #define MAX_CAMPO_FILA 20
 #define MAX_CAMPO_COLUMNA 20
 #define MAX_A_PEGAR 30
+
+const int VELOCIDAD_ALTA = 75;
+const int VELOCIDAD_MEDIA = 50;
+const int VELOCIDAD_BAJA = 25;
+const int HUMEDAD_ALTA = 75;
+const int HUMEDAD_MEDIA = 50;
+const int HUMEDAD_BAJA = 25;
+const int VIDA_ORCO = 200;
+const int VIDA_EXTRA_MAX = 100;
+const int CRITICO_MALO = 0;
+const int CRITICO_REGULAR = 10;
+const int CRITICO_BUENO = 25;
+const int ATAQUE_ENANO = 60;
+const int ATAQUE_CRITICO_G =100;
+const int ATAQUE_ELFO = 30;
+const int ATAQUE_CRITICO_L = 70;
+const int POSICION_INICIAL = 0;
+const char MALO = 'M';
+const char REGULAR = 'R';
+const char BUENO = 'B';
+const char ORCO = 'O';
+const char CAMINO = ' ';
+const char FONDO = '"';
+const char ENTRADA = 'E';
+const char TORRE = 'T';
+
 
 /*
 *Análsis: Establece los valores de resistencia y defensores extra de las torres
@@ -504,9 +513,14 @@ void atacar_con_elfos_campo_2(juego_t* juego){
 		}
 	}
 }
+/*
+*Análsis: Establece la vida, el camino y la posicion en el mismo(posicion inicial) al enemigo pasado por parametro
+*Pre: Camino == CAMINO_1 o CAMINO_2, enemigo perteneciente a un vector del mismo tipo de datos
+*Post: Orco inicializado para agregar
+*/
 void inicializar_orco(enemigo_t* enemigo, int camino){
 	enemigo->camino=camino;
-	enemigo->pos_en_camino=0;
+	enemigo->pos_en_camino=POSICION_INICIAL;
 	enemigo->vida = VIDA_ORCO + (rand()%VIDA_EXTRA_MAX + 0);
 }
 /*
@@ -514,6 +528,7 @@ void inicializar_orco(enemigo_t* enemigo, int camino){
 *Pre: El nivel_actual debe se 1,2,3 o 4.
 *Post: Vector de orcos con un nuevo elemento y con su tope modificado
 */
+/*FUNCIONES PUBLICAS*/
 void agregar_orco(juego_t* juego){
 	srand((unsigned)time(NULL));
 	if (juego->nivel.tope_enemigos < juego->nivel.max_enemigos_nivel){

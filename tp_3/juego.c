@@ -1,3 +1,10 @@
+/**
+ * @Date:   2020-08-10T17:17:20-03:00
+ * @Last modified time: 2020-08-13T01:45:07-03:00
+ */
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -6,7 +13,6 @@
 #include "defendiendo_torres.h"
 #include "utiles.h"
 #include "argumentos.h"
-
 
 const int TOPE_CAMPO_1=15;
 const int TOPE_CAMPO_2=20;
@@ -210,9 +216,9 @@ bool posicion_valida(coordenada_t posicion, int coordenada_max){
 	return (posicion.fil < coordenada_max) && (posicion.col < coordenada_max);
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Pregunta al usuario la posicion del defensor que debe agregar (informa la cantidad de defensores que tiene que agregar)
+*Pre: Tipo y defensor correspondiente a alguna de las alternativas (G o L)(ENANO o ELFO)
+*Post: Posicion pasado por el usuario(independiente de su valor)
 */
 void pedir_posicion_def(char defensor[], char tipo, int cantidad_min, int cantidad_puesta, coordenada_t* posicion){
 	printf("%sS para añadir: %i \n", defensor, cantidad_min - cantidad_puesta );
@@ -269,9 +275,9 @@ bool hay_bonificacion(juego_t juego, campo_t campo){
 	}
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Según el nivel actual y el valor del costo le resta resistencia a la torre del nivel
+*Pre: Costo del tipo de defensor indicado, juego inicializado para la primer ejecucion
+*Post: Deja a la torre con la salud según corresponda
 */
 void quitar_resistecia_torres(juego_t* juego, int costo[]){
 	if(juego->nivel_actual == NIVEL_1){
@@ -299,9 +305,9 @@ void agregar_def_extra(juego_t* juego, campo_t campo, char tipo, char defensor[M
 		}
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Evalua si el costo pasado por parametro tiene un valor de costo para la torre del nivel actual
+*Pre: Juego configurado y costo pasado por parameto ya configurado
+*Post: Verdadero si existe costo para la torre del nivel
 */
 bool estado_costo(juego_t juego, int costo[]){
 	if((juego.nivel_actual == NIVEL_1) && (costo[TORRE_1] != 0)){
@@ -315,9 +321,9 @@ bool estado_costo(juego_t juego, int costo[]){
 	}
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Evalua segun el tipo recibido si es válido para el nivel (el tipo debe ser de un defensor que le quite resistencia a la torre del nivel)
+*Pre: Tipo pedido al usuario, juego y campo configurado
+*Post: Verdadero si el tipo que ingrtesó el usuario es válido
 */
 bool tipo_correcto(char tipo, juego_t juego, campo_t campo){
 	if (tipo == ENANO){
@@ -348,46 +354,46 @@ void preguntar_tipo (char* tipo, juego_t juego, campo_t campo){
 	*tipo=eleccion;
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Evalua si de la decision es S(SI) o N(NO)
+*Pre: Decision ya pedida al usuario
+*Post: Verdadero si la decision es SI o NO
 */
-bool desicion_valida(char desicion){
-	return ((desicion == SI) || (desicion == NO));
+bool decision_valida(char decision){
+	return ((decision == SI) || (decision == NO));
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Muestra el costo de los enanos y elfos extra y pregunta si desea agregar
+*Pre: Campo inicializado con el costo de los defensores
+*Post: Devuelve la decision del usuario
 */
-void preguntar_decision(char* desicion, campo_t campo){
+void preguntar_decision(char* decision, campo_t campo){
 	char aux;
 	printf(" PENALIZACION  |   TORRE 1   |   TORRE 2   \n");
 	printf("_______________|_____________|_____________\n");
-	printf("    ENANOS     |     %i      |     %i       \n", campo.costo_G_extra[TORRE_1], campo.costo_G_extra[TORRE_2]);
-	printf("    ELFOS      |     %i      |     %i       \n", campo.costo_L_extra[TORRE_1], campo.costo_L_extra[TORRE_2]);
+	printf("    ENANOS     |     %i      |     %i      \n", campo.costo_G_extra[TORRE_1], campo.costo_G_extra[TORRE_2]);
+	printf("    ELFOS      |     %i       |     %i      \n", campo.costo_L_extra[TORRE_1], campo.costo_L_extra[TORRE_2]);
 	printf("-------------------------------------------\n");
 	printf("¿Desea agregar un defensor extra?(%c/%c):", SI, NO);
 	scanf(" %c", &aux);
-	while(!desicion_valida(aux)){
+	while(!decision_valida(aux)){
 		printf("La desicion no es correcta, recordá %c/%c ...\n", SI, NO);
 		printf("¿Desea agregar un defensor extra?(%c/%c):", SI, NO);
 		scanf(" %c", &aux);
 	}
-	(*desicion)=aux;
+	(*decision)=aux;
 }
 /*
-*Análsis: Pregunta por un defensor extra según el nivel que corresponda (tipo y periodicidad)
+*Análsis: Pregunta por un defensor extra según el nivel que corresponda
 *Pre: el nivel_actual del juego debe ser 1,2,3 o 4 y deben estar inicializados
-*Post: Interacciona con el usuario y agrega o no un defensor según corresponda
+*Post: Interacciona con el usuario y agrega o no un defensor según corresponda (decision y tipo correcto)
 */
 void bonificar_con_defesor(juego_t* juego, campo_t campo){
-	char desicion;
+	char decision;
 	char defensor[MAX_LETRAS_DEFENSOR];
 	if ((juego->torres.enanos_extra > 0) || (juego->torres.elfos_extra > 0)){
 		char tipo;
-		preguntar_decision(&desicion, campo);
-		if (desicion==SI){
+		preguntar_decision(&decision, campo);
+		if (decision==SI){
 			preguntar_tipo(&tipo, *juego, campo);
 			if ((tipo==ENANO)&&(juego->torres.enanos_extra > 0)){
 				strcpy(defensor, "ENANO");
@@ -402,9 +408,9 @@ void bonificar_con_defesor(juego_t* juego, campo_t campo){
 	}
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Según el nivel establece la cantidad de orcos máxima (por constante)
+*Pre: Pasar estructura en el nivel correspondiente
+*Post: Estructura inicializada con la cantidad max_enemigos_nivel
 */
 void configurar_orcos_iniciales(int nivel, estructura_t* estructura){
 	if (nivel==NIVEL_1){
@@ -519,6 +525,30 @@ void jugar_turno_completo(juego_t* juego, estructura_t estructura[MAX_NIVELES], 
 	}
 }
 /*
+*Analisis: Evalua si el programa está para jugar
+*Pre: programa en estado calculado
+*Post: Verdadero si se juega
+*/
+bool se_juega(int programa){
+	return (programa==JUGAR);
+}
+/*
+*Analisis: Evalua si el programa tiene un error (no sé puso un comando correcto)
+*Pre: programa en estado calculado
+*Post: Verdadero si hay error
+*/
+bool hay_error(int programa){
+	return (programa==ERROR);
+}
+/*
+*Analisis: Evalua si el juego debe grabarse
+*Pre: modo de juego calculado
+*Post: Verdadero si está en un modo en el que se graba
+*/
+bool se_graba(int modo){
+	return (modo == STANDARD_GRABANDO) || (modo == CUSTOM_GRABANDO);
+}
+/*
 *Analisis: Configuracion inicial del juego
 *Pre: Configuracion y estructuras cargadas
 *Post: Juego inicializado y con el nivel 1 cargado, ranking con el usuario
@@ -545,10 +575,10 @@ int main (int argc, char* argv[]){
 
 	if (argc>1){
 		int programa=estado_programa(argv[1]);
-		if ((programa != JUGAR) && (programa != ERROR)){
+		if (!se_juega(programa) && !hay_error(programa)){
 			comandos(programa, argv);
 			return 0;
-		}else if (programa==JUGAR){
+		}else if (se_juega(programa){
 			system("clear");
 			int modo=modo_juego(argv, archivo_config, archivo_grabacion);
 			cargar_confirguracion(&configuracion, modo, archivo_config);
@@ -557,7 +587,7 @@ int main (int argc, char* argv[]){
 			while(estado_juego(juego) == JUGANDO){
 				jugar_turno_completo(&juego, estructura, configuracion, ranking);
 				calcular_puntaje(juego, configuracion, &ranking);
-				if ((modo == STANDARD_GRABANDO) || (modo == CUSTOM_GRABANDO)){
+				if (se_graba(modo)){
 					guardar_partida(juego, archivo_grabacion);
 					printf("grabando...\n");
 				}
@@ -570,11 +600,11 @@ int main (int argc, char* argv[]){
 			actualizar_ranking(juego, ranking, archivo_config);
 			return 0;
 		}else{
-			printf("Hubo un error con los comandos, revisar si se ingresó correctamente.\n Más informacion comando '--help'.\n");
+			printf("Hubo un error con los comandos, revisar si se ingresó correctamente.\n Más informacion comando '%s'.\n", ARG_HELP);
 			return -1;
 		}
 	}else{
-		printf("No ingresaste ningun comando\n Más informacion comando '--help'.\n");
+		printf("No ingresaste ningun comando\n Más informacion comando '%s'.\n", ARG_HELP);
 		return -1;
 	}
 }

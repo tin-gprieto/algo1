@@ -1,3 +1,10 @@
+/**
+ * @Date:   2020-08-10T17:17:20-03:00
+ * @Last modified time: 2020-08-11T00:42:07-03:00
+ */
+
+
+
 #ifndef __ARGUMENTOS_H__
 #define __ARGUMENTOS_H__
 
@@ -27,6 +34,7 @@
 #define MAX_TORRES 2
 #define MAX_ARGUMENTO 20
 #define MAX_USUARIO 20
+#define ARG_HELP "--help"
 
 typedef struct ranking{
 	char usuario[MAX_USUARIO];
@@ -35,14 +43,14 @@ typedef struct ranking{
 } ranking_t;
 /*
 *Analisis: Calcula el puntaje segun la configuracion y la cantidad de orcos muertos
-*Pre:
-*Post:
+*Pre: Estar en modo_programa JUGAR(con juego inicializado) y configuracion inicializada
+*Post: puntos y orcos_muertos del ranking actualizados
 */
 void calcular_puntaje(juego_t juego, configuracion_t config, ranking_t* ranking);
 /*
-*Analisis: Calcula los puntos y actualiza el archivo del ranking segun la configuracion
-*Pre:
-*Post:
+*Analisis: actualiza el archivo del ranking segun la configuracion y el ranking
+*Pre: estado_juego GANADO o PERDIDO, ranking con puntos calculados y usuario ya pedido
+*Post: archivo del ranking (segúin la config) con el nuevo ranking de usuario ya agregado ordenadamente
 */
 void actualizar_ranking(juego_t juego, ranking_t ranking, char config[]);
 /*
@@ -53,8 +61,8 @@ void actualizar_ranking(juego_t juego, ranking_t ranking, char config[]);
 void guardar_partida(juego_t juego, char grabacion[]);
 /*
 *Analisis: Abre el archivo de caminos y carga su informacion al nivel
-*Pre:
-*Post:
+*Pre: Configuracion ya cargada y nvl == NIVEL_1, NIVEL_2, NIVEL_3 o NIVEL_4
+*Post: Camino/s del nivel configurado a partir del archivo de caminos
 */
 void configurar_camino_archivo(int nvl, nivel_t* nivel, configuracion_t configuracion);
 /*
@@ -63,12 +71,6 @@ void configurar_camino_archivo(int nvl, nivel_t* nivel, configuracion_t configur
 *Post: Configuracion cargada
 */
 void cargar_confirguracion(configuracion_t* configuracion, int modo, char config[]);
-/*
-*Analisis: Evalua si estan los archivos obligatorios segun el modo del programa
-*Pre: Modo del progrma calculado
-*Post: Verdadero si esta el archivo, falso si no hay nada
-*/
-bool estan_los_archivos(int programa, char argumento[]);
 /*
 *Analisis: Devuelve un valor de que tipo de configuracion se usa para jugar y si se graba, junto con el nombre de sus archivos
 *Pre: El estado del programa debe ser "jugar"

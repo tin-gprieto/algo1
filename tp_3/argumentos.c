@@ -1,3 +1,10 @@
+/**
+ * @Date:   2020-08-10T17:17:20-03:00
+ * @Last modified time: 2020-08-13T01:34:21-03:00
+ */
+
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,6 +21,12 @@
 #define MAX_LONGITUD_CAMINO 200
 #define MAX_RANKING 100
 #define MAX_CAMPO 20
+
+#define ARG_JUGAR "jugar"
+#define ARG_CREAR_CONFIGURACION "crear_configuracion"
+#define ARG_CREAR_CAMINOS "crear_caminos"
+#define ARG_RANKING "ranking"
+#define ARG_REPETICION "poneme_la_repe"
 
 #define COLOR_CYAN "\x1b[36m"
 #define COLOR_VERDE "\x1b[32m"
@@ -119,9 +132,9 @@ void obtener_direc_ranking(char configuracion[], char direc_ranking[]){
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Abre un nuevo archivo de ranking para pasar el vector de ranking actualizado y lo renombra como el archivo sin actualizar
+*Pre:  Direccion del archivo original y vector lista con el nuevo ranking ya agregado ordenadamente
+*Post: archivo de ranking con el nuevo usuario y puntos agregado en el lugar indicado
 */
 void reescribir_ranking(ranking_t lista[], int tope_lista, char direc_ranking[]){
   FILE* nuevo_ranking=fopen("nuevo_ranking.txt", "w");
@@ -137,18 +150,19 @@ void reescribir_ranking(ranking_t lista[], int tope_lista, char direc_ranking[])
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Pasa los campos del ranking segundo al ranking primero
+*Pre: El ranking segundo debe tener datos de usuario y puntos
+*Post: Ranking primero con los datos del ranking segundo
 */
 void cambiar_valores_ranking(ranking_t* primero, ranking_t segundo){
   primero->puntos=segundo.puntos;
   strcpy(primero->usuario, segundo.usuario);
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Añade el ranking al vector de manera ordenada segun los puntos (a igual puntos, orden alfabetico)
+*Pre: Lista cargado con el orden del archivo y el tope con la cantidad de elementos que tiene
+(en el caso de no tener caraga la lista lo añade al primer lugar, condicion: tope=0)
+*Post: Vector con el nuevo ranking y el tope de lista modificado
 */
 void agregar_en_lista(ranking_t lista[], int* tope_lista, ranking_t ranking){
   bool agrego = false;
@@ -172,14 +186,14 @@ void agregar_en_lista(ranking_t lista[], int* tope_lista, ranking_t ranking){
   (*tope_lista)++;
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Carga el vector lista con la informacion del archivo de ranking en el orden en el que se encuentra
+*Pre: Archico ranking vacio o ya ordenado de mayor a menor
+*Post: Lista con el ranking y tope_lista con la cantidad de elementos
 */
 void obtener_lista(char direc_ranking[], ranking_t lista[], int* tope_lista){
   FILE* archivo_ranking=fopen(direc_ranking, "r");
   if(!archivo_ranking){
-    printf("No se pudo abrir el ranking para leerlo\n");
+    printf("Primera vez en usar el ranking\n");
   }else{
     int tope_aux = *tope_lista;
     int leido=fscanf(archivo_ranking, FORMATO_RANKING, lista[tope_aux].usuario, &lista[tope_aux].puntos);
@@ -192,9 +206,9 @@ void obtener_lista(char direc_ranking[], ranking_t lista[], int* tope_lista){
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Añade ordenadmente el nuevo ranking al archivo
+*Pre: Rankinga con informacion de usuario (puntos ya calculados y nombre de usuario)
+*Post: Archivo de ranking con los nuevos datos
 */
 void agregar_en_ranking(char direc_ranking[], ranking_t ranking){
   ranking_t lista[MAX_RANKING];
@@ -205,9 +219,9 @@ void agregar_en_ranking(char direc_ranking[], ranking_t ranking){
 }
 /*FUNCIONES configurar_camino_archivo*/
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Lee todas las coordenadas de un camino y las guarda en un vector de coordenada_t
+*Pre: Abrir el archivo y enviar con el stream ya puesto para leer coordenadas
+*Post: vector con todas las coordenadas de un camino y su tope correspondiente
 */
 void cargar_vector_camino(FILE* archivo, coordenada_t camino[], int* tope_camino){
   int tope=0;
@@ -221,9 +235,9 @@ void cargar_vector_camino(FILE* archivo, coordenada_t camino[], int* tope_camino
   *tope_camino=tope;
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Según el nivel y el camino carga un vector de coordenadas al nivel
+*Pre: El camino se debe corresponder al nivel que se pase y el archivo a la direccion donde se encuentren los caminos (en la configuracion)
+*Post: Nivel inicializado con el recorrido de un camino
 */
 void cargar_camino(FILE* archivo, int nvl, int camino, nivel_t* nivel){
   int nivel_archivo;
@@ -316,21 +330,21 @@ void leer_configuracion(FILE* archivo, configuracion_t* config){
 }
 /*FUNCIONES comandos*/
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Muestra por pantalla los comandos posibles que tiene el usuario para realizar
+*Pre: Primer argumento pasado por la consola sea ARG_HELP
+*Post: Informacion por pantalla
 */
 void mostrar_ayuda(){
   printf("COMANDOS:\n");
-  printf(COLOR_CYAN"* crear_configuracion\n"COLOR_RESET);
+  printf(COLOR_CYAN"*  %s\n"COLOR_RESET, ARG_CREAR_CONFIGURACION);
   printf("    <nombre del archivo a crear>    (obligatorio)\n");
-  printf(COLOR_CYAN"* crear_caminos \n"COLOR_RESET);
+  printf(COLOR_CYAN"*  %s \n"COLOR_RESET, ARG_CREAR_CAMINOS);
   printf("    <nombre del archivo a crear>    (obligatorio)\n");
-  printf(COLOR_CYAN"* poneme_la_repe \n"COLOR_RESET);
+  printf(COLOR_CYAN"*  %s \n"COLOR_RESET, ARG_REPETICION);
   printf("    grabacion=<nombre del archivo de la repeticion>   (obligatorio)\n    velocidad=<numero entero o racional positivo>   (opcional)(1 por defecto)\n");
-  printf(COLOR_CYAN"* ranking \n"COLOR_RESET);
+  printf(COLOR_CYAN"*  %s \n"COLOR_RESET, ARG_RANKING);
   printf("    listar=<cantidad de jugadores para ver>   (opcional)(todos por defecto)\n    config=<nombre de la configuracion>   (opcional)(standard por defecto)\n");
-  printf(COLOR_CYAN"* jugar \n"COLOR_RESET);
+  printf(COLOR_CYAN"*  %s \n"COLOR_RESET, ARG_JUGAR);
   printf("    config=<nombre de la configuracion>   (opcional)(standard por defecto)\n    grabacion=<archivo para guardar la repeticion>   (opcional)(no se graba por defecto)\n");
 }
 /*
@@ -463,9 +477,9 @@ void poneme_la_repe(char* argv[]){
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Muestra por pantalla el camino ha creado y en el nivel que lo hizo
+*Pre: Haber terminado de crear un camino (aviso)
+*Post: Informacion por pantalla
 */
 void mostrar_camino_creado(int nivel, int camino){
 	system("clear");
@@ -478,9 +492,9 @@ void mostrar_camino_creado(int nivel, int camino){
 	system("clear");
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Escribe en un un archivo todas las coordenadas de un vector camino
+*Pre: Tope propio a la cantidad de elementos y archivo previamente abierto y con las claves (n° de nivel y camino) ya escritas
+*Post: Camino completo dentro del archivo
 */
 void cargar_archivo_camino(FILE* archivo, coordenada_t camino[MAX_LONGITUD_CAMINO], int tope_camino){
   for (int i = 0; i < tope_camino; i++) {
@@ -488,18 +502,20 @@ void cargar_archivo_camino(FILE* archivo, coordenada_t camino[MAX_LONGITUD_CAMIN
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Escribe en el archivo el número de nivel y de camino que se van escribir posteriormente
+*Pre: Archivo previament abierto y nivel y camino que se corresponan al que se creó
+*Post: Archivo con las claves escritas
 */
 void titular_archivo_camino(FILE* archivo, int nivel, int camino){
   fprintf(archivo, FORMATO_CREAR_CAMINO_ESCRITURA, CLAVE_NIVEL, (nivel+1));
   fprintf(archivo, FORMATO_CREAR_CAMINO_ESCRITURA, CLAVE_CREAR_CAMINO, camino);
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Evalua si se salió del camino o volvió para atrás
+*Pre: nueva_coord ya calculada a partir de la eleccion del usuario y de la coordenada actual,
+tope_campo correspondiente al nivel,
+ y que se pase la coordenada anterior a la actual (tope-2)
+*Post: Verdadero si está dentro del campo y no volvio a la coordenada anterior
 */
 bool cumple_condiciones(coordenada_t nueva_coord, coordenada_t coord_anterior, int tope_campo){
   if((nueva_coord.col==coord_anterior.col)&&(nueva_coord.fil==coord_anterior.fil)){
@@ -513,9 +529,9 @@ bool cumple_condiciones(coordenada_t nueva_coord, coordenada_t coord_anterior, i
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Segun la direccion y la columna de la coord actual, se obtiene la nueva columna
+*Pre: Pasa la columna de de la coordenada actual (tope-1) y la direccion despues de pedirla al usuario
+*Post: Nueva columna
 */
 int direccion_columna(char direccion,  int col_anterior){
   if(direccion==IZQ){
@@ -530,9 +546,9 @@ int direccion_columna(char direccion,  int col_anterior){
   return -1;
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Segun la direccion y la fila de la coord actual, se obtiene la nueva fila
+*Pre: Pasa la fila de de la coordenada actual (tope-1) y la direccion despues de pedirla al usuario
+*Post: Nueva fila
 */
 int direccion_fila(char direccion,  int fil_anterior){
   if(direccion==IZQ){
@@ -547,17 +563,18 @@ int direccion_fila(char direccion,  int fil_anterior){
   return -1;
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Chequea si la direccion pasada como letro corresponde a alguna de las constantes como direccion
+*Pre: direccion pedida al usuario
+*Post: Verdadero si es IZQ, DER, ABAJO o ARRIBA(constantes)
 */
 bool cumple_direccion(char direccion){
   return((direccion==IZQ)||(direccion==DER)||(direccion==ABAJO)||(direccion==ARRIBA));
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Pide una direccion, controla que sea alguna de las constates que se asignaron en el programa
+y pasa la nueva coordenada según esa direccion
+*Pre: La coordenada anterior debe ser la ultima que tiene el vector de camino (tope-1)
+*Post: Nueva coordenada para agregar al camino
 */
 void pedir_direccion(coordenada_t coord_anterior, coordenada_t* nueva_coord){
   char direccion;
@@ -572,9 +589,10 @@ void pedir_direccion(coordenada_t coord_anterior, coordenada_t* nueva_coord){
   nueva_coord->col=direccion_columna(direccion, coord_anterior.col);
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Pide el nuevo tramo del camino a partir de una direccion que pone el usuario
+mientras cumpla las condiciones (Sin volver para atras y sin salir del campo)
+*Pre: Tope_campor correspondiente al nivel y vector camino pertenecientea un nivel_t
+*Post: Nueva coordenada dentro del vector y el valor correspondiente del tope_camino
 */
 void pedir_nuevo_tramo(coordenada_t camino[], int* tope_camino, int tope_campo){
   coordenada_t coord_aux;
@@ -588,13 +606,13 @@ void pedir_nuevo_tramo(coordenada_t camino[], int* tope_camino, int tope_campo){
   }
   camino[*tope_camino].fil=coord_aux.fil;
   camino[*tope_camino].col=coord_aux.col;
-  printf("ULTIMA POSICION: ( %i ; %i )\n", camino[*tope_camino].fil, camino[*tope_camino].col );
   (*tope_camino)=(*tope_camino + 1);
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Chequea si el camino está termminado según la última coordenada del camino,
+y cual debe ser la col/fil de la torre segun  qué tipo de camino es
+*Pre: ultima_coord correspondiente al ultimo valor del vector, modo de camino ya calculado y por ende el limite (según extension del campo)
+*Post: Verdadero si el camino ya termino y debe ser torre la ultima coordenada
 */
 bool camino_terminado(coordenada_t ultima_coord, int modo_camino, int limite){
   if(modo_camino==HORIZONTAL){
@@ -606,9 +624,9 @@ bool camino_terminado(coordenada_t ultima_coord, int modo_camino, int limite){
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Según donde se ubica la entrada y la extension del campo determina que tipo de camino es  (HORIZONTAL o VERTICAL)
+*Pre: entrada ya pedida al usuario (no puede ser vertice ni perteneciente al campo) y tope_campo correspondiente al nivel
+*Post: Tipo de camino (por constante) y límite del campo (donde se debe ubicar la torre)(contraria a la entrada)
 */
 int modo_camino(coordenada_t entrada, int tope_campo, int* limite){
 	if(entrada.col==0){
@@ -628,9 +646,9 @@ int modo_camino(coordenada_t entrada, int tope_campo, int* limite){
 	}
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Evalua si la fila columna es un margen del campo segun su tope
+*Pre: tope propio de camnpo
+*Post: verdadero si se encuentra en una fila o columna límite
 */
 bool es_margen(int fila, int columna, int tope){
   if((fila==0)||(fila==(tope-1))||(columna==0)||(columna==(tope-1))){
@@ -640,9 +658,9 @@ bool es_margen(int fila, int columna, int tope){
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Evalua si la fila columna es vertice del campo segun su tope
+*Pre:  tope propio de camnpo
+*Post: verdadero si se encuentra en una fila y columna de los vértices
 */
 bool es_vertice(int fila, int columna, int tope){
   if((fila==0)&&(columna==0)){
@@ -658,23 +676,28 @@ bool es_vertice(int fila, int columna, int tope){
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Pide por consala un coordenada
+*Pre: -
+*Post: coord con un valor de fil y col
+*/
+void pedir_coordenada(coordenada_t* coord){
+  printf("FILA:");
+  scanf("%i", &(coord->fil));
+  printf("COLUMNA:");
+  scanf("%i", &(coord->col));
+}
+/*
+*Analisis: Asigna la primer coordenada del camino que estará en alguno de los margenes (sin estar en un vértice)
+*Pre: camino que se va a crear y tope_campo propio del nivel del camino
+*Post: coordenada de entrada que sea del márgen del campo y no un vértice del mismo
 */
 void pedir_entrada(coordenada_t camino[], int* tope_camino, int tope_campo){
   coordenada_t coord_aux;
   printf("Asignar la ENTRADA: \n");
-  printf("FILA:");
-  scanf("%i", &coord_aux.fil);
-  printf("COLUMNA:");
-  scanf("%i", &coord_aux.col);
+  pedir_coordenada(&coord_aux);
   while (es_vertice(coord_aux.fil, coord_aux.col, tope_campo)||(!es_margen(coord_aux.fil, coord_aux.col, tope_campo))){
     printf("HA PUESTO LA ENTRADA EN UN VERTICE, DENTRO DEL CAMPO o FUERA DE ÉL, INGRESE NUEVAMENTE: \n");
-    printf("FILA:");
-    scanf("%i", &coord_aux.fil);
-    printf("COLUMNA:");
-    scanf("%i", &coord_aux.col);
+    pedir_coordenada(&coord_aux);
   }
   camino[*tope_camino].fil=coord_aux.fil;
   camino[*tope_camino].col=coord_aux.col;
@@ -682,9 +705,9 @@ void pedir_entrada(coordenada_t camino[], int* tope_camino, int tope_campo){
   printf("ENTRADA=(%i;%i)\n", camino[*tope_camino-1].fil, camino[*tope_camino-1].col);
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Muestra por pantalla un ayuda para saber las columnas del campo
+*Pre: tope_campo del nivel donde se carga el camino
+*Post: Informacion por pantalla
 */
 void imprimir_margen(int tope_campo){
   for (int i = 0; i < tope_campo; i++) {
@@ -700,9 +723,9 @@ void imprimir_margen(int tope_campo){
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Asigna dentro del campo la entrada, la torre, y el trayecto del camino con constantes (letras)
+*Pre: tope_camino que corresponda a la cantidad de coordenadas del camino
+*Post: Campo con su camino marcado
 */
 void asignar_camino(char campo[MAX_CAMPO][MAX_CAMPO], coordenada_t camino[MAX_LONGITUD_CAMINO], int tope_camino){
   for (int i=0; i<tope_camino; i++){
@@ -715,9 +738,10 @@ void asignar_camino(char campo[MAX_CAMPO][MAX_CAMPO], coordenada_t camino[MAX_LO
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Rellana el campo y egún el tipo de camino determina sus lugares prohibidos (para asignar la entrada)
+o los lugares donde puede ir la torre (LIMITE)
+*Pre: tope_campo corresponda al máximo de sus coordenadas, modo camino distinto a HORIZONTAL o VERTICAL si no está configurando los nuevos tramos
+*Post: Campo inicializado con sus valores fuera del camino
 */
 void inicializar_campo(char campo[MAX_CAMPO][MAX_CAMPO], int tope_campo, int modo_camino, int limite){
   for (int i=0; i<tope_campo; i++){
@@ -745,9 +769,9 @@ void inicializar_campo(char campo[MAX_CAMPO][MAX_CAMPO], int tope_campo, int mod
   }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Muestra el campo con el camino
+*Pre: tope_campo corresponda al máximo de sus coordenadas
+*Post: Campo con el camino por pantalla
 */
 void mostrar_caminos(coordenada_t camino[MAX_LONGITUD_CAMINO], int tope_camino,  int tope_campo, int modo_camino, int limite){
   char campo[MAX_CAMPO][MAX_CAMPO];
@@ -777,9 +801,9 @@ void mostrar_caminos(coordenada_t camino[MAX_LONGITUD_CAMINO], int tope_camino, 
   imprimir_margen(tope_campo);
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Informa al usuario las caracteristicas del camino que va a configurar
+*Pre: Parametros correspondientes al camino por configurar
+*Post: Informacion mostrada por pantalla
 */
 void titular_el_campo(int nivel, int n_camino, int forma_camino){
 		printf("NIVEL: %i         CAMINO: %i\n", (nivel+1), n_camino);
@@ -792,9 +816,9 @@ void titular_el_campo(int nivel, int n_camino, int forma_camino){
     }
 }
 /*
-*Analisis:
-*Pre:
-*Post:
+*Analisis: Pide todos los datos del camino y los escribe en el archivo pasado por parametro
+*Pre: tope_campo y n_camino correspondiente al nivel, archivo ya abierto y que sea el pasado por consola
+*Post: Archivo cargado con un solo camino
 */
 void pedir_camino(FILE* archivo, int nivel, int n_camino, int tope_campo){
 		coordenada_t camino[MAX_LONGITUD_CAMINO];
@@ -817,9 +841,9 @@ void pedir_camino(FILE* archivo, int nivel, int n_camino, int tope_campo){
     cargar_archivo_camino(archivo, camino, tope_camino);
 }
 /*
-*Analisis: Segun el argumento pasado por el usuario, escribe toda la informacion de los caminos.
-*Pre:
-*Post:
+*Analisis: Segun el argumento pasado por el usuario, escribe (por la interaccion del usuario) toda la informacion de los caminos.
+*Pre: Primer argumento pasado por consola "crear_caminos" (estado_programa==CREAR_CAMINOS)
+*Post: Archivo de caminos pasado por consola escrito con todas las coordenadas de los caminos
 */
 void crear_caminos(char* argv[]){
   if (argv[2] == NULL){
@@ -1037,26 +1061,6 @@ void cargar_confirguracion (configuracion_t* configuracion, int modo, char nombr
     }
   }
 }
-bool estan_los_archivos(int programa, char argumento[]){
-  if (programa==CREAR_CONFIGURACION){
-    if (argumento == NULL)
-    return false;
-    else
-    return true;
-  }else if (programa==CREAR_CAMINOS){
-    if (argumento == NULL)
-    return false;
-    else
-    return true;
-  }else if(programa==REPETICION){
-    if (argumento == NULL){
-      return false;
-    }else
-    return true;
-  }else{
-    return false;
-  }
-}
 int modo_juego(char* argv[], char config[], char grabacion[]){
   char arg_2[MAX_ARCHIVO];
   char arg_3[MAX_ARCHIVO];
@@ -1089,17 +1093,17 @@ int modo_juego(char* argv[], char config[], char grabacion[]){
   return STANDARD_SIN_GRABAR;
 }
 int estado_programa(char argumento[]){
-  if(strcmp(argumento,"jugar")==0){
+  if(strcmp(argumento, ARG_JUGAR)==0){
     return JUGAR;
-  }else if(strcmp(argumento,"crear_configuracion")==0){
+  }else if(strcmp(argumento, ARG_CREAR_CONFIGURACION)==0){
     return CREAR_CONFIGURACION;
-  }else if(strcmp(argumento,"crear_caminos")==0){
+  }else if(strcmp(argumento, ARG_CREAR_CAMINOS)==0){
     return CREAR_CAMINOS;
-  }else if(strcmp(argumento,"poneme_la_repe")==0){
+  }else if(strcmp(argumento, ARG_REPETICION)==0){
     return REPETICION;
-  }else if(strcmp(argumento,"ranking")==0){
+  }else if(strcmp(argumento, ARG_RANKING)==0){
     return RANKING;
-  }else if(strcmp(argumento,"--help")==0){
+  }else if(strcmp(argumento, ARG_HELP)==0){
     return HELP;
   }else{
     return ERROR;
