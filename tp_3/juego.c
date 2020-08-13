@@ -578,7 +578,7 @@ int main (int argc, char* argv[]){
 		if (!se_juega(programa) && !hay_error(programa)){
 			comandos(programa, argv);
 			return 0;
-		}else if (se_juega(programa){
+		}else if (se_juega(programa)){
 			system("clear");
 			int modo=modo_juego(argv, archivo_config, archivo_grabacion);
 			cargar_confirguracion(&configuracion, modo, archivo_config);

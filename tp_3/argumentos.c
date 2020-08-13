@@ -81,6 +81,8 @@ const int CAMINO_1=1;
 const int CAMINO_2=2;
 const int HORIZONTAL=0;
 const int VERTICAL=1;
+const int RANKING_COMPLETO=0;
+const int RANKING_LISTADO=1;
 const int SIN_DEFINIR=-1;
 const int MULTIPLICADOR=1000;
 const char SEPARADOR[MAX_SEPARADOR]= "=";
@@ -381,53 +383,65 @@ void mostra_ranking(char ranking[], int tope){
   }
 }
 /*
+*Analisis: Según los comandos pasados por terminal determina como será el ranking, con su direccion
+y la cantidad de jugadores a listar (si es un cantidad limitada)
+*Pre: primer argumento==ARG_RANKING
+*Post: LISTADO si tiene un tope para la lista, COMPLETO si debe mostrarse completo (tope_lista y direccion del ranking por parametro)
+*/
+int estado_ranking(char* argv[], char ranking[], int* tope_lista){
+  char aux[MAX_ARCHIVO];
+  char clave_config[MAX_ARCHIVO];
+  char config[MAX_ARCHIVO];
+  char clave_lista[MAX_ARCHIVO];
+  char lista[MAX_ARCHIVO];
+  if (argv[2]==NULL){
+    obtener_direc_ranking(ARCHIVO_CONFIG_STANDARD, ranking);
+    *(tope_lista) = CONFIG_VACIA;
+    return RANKING_COMPLETO;
+  }else{
+    strcpy(aux,strtok(argv[2], SEPARADOR));
+    if(strcmp(aux, "config") == 0){
+      strcpy(config, strtok(NULL, SEPARADOR));
+      obtener_direc_ranking(config, ranking);
+      if (argv[3]==NULL){
+        *(tope_lista) = CONFIG_VACIA;
+        return RANKING_COMPLETO;
+      }else{
+        strcpy(clave_lista,strtok(argv[3], SEPARADOR));
+        strcpy(lista,strtok(NULL, SEPARADOR));
+        *(tope_lista) =atoi(lista);
+        return RANKING_LISTADO;
+      }
+    }else if(strcmp(aux, "listar") == 0){
+      strcpy(lista,strtok(NULL, SEPARADOR));
+      *(tope_lista) = atoi(lista);
+      if (argv[3] == NULL){
+        obtener_direc_ranking(ARCHIVO_CONFIG_STANDARD, ranking);
+      }else{
+        strcpy(clave_config, strtok(argv[3], SEPARADOR));
+        strcpy(config, strtok(NULL, SEPARADOR));
+        obtener_direc_ranking(config, ranking);
+      }
+      return RANKING_LISTADO;
+    }
+  }
+  return CONFIG_VACIA;
+}
+/*
 *Analisis:Según los comandos que se pasen muestra diferentes rankings
 *Pre: Modo de programa debe ser "ranking"
 *Post: Datos del archivo del raking segun la configuracion y listado mostrado por pantalla
 */
 void ranking(char* argv[]){
-  char arg_2[MAX_ARCHIVO];
-  char arg_2_valor[MAX_ARCHIVO];
-  char arg_3[MAX_ARCHIVO];
-  char arg_3_valor[MAX_ARCHIVO];
   char ranking[MAX_ARCHIVO];
-
-  if (argv[2]==NULL){
-    strcpy(arg_2, ARCHIVO_CONFIG_STANDARD);
-    obtener_direc_ranking(arg_2, ranking);
+  int tope_lista = CONFIG_VACIA;
+  int modo_ranking=estado_ranking(argv, ranking, &tope_lista);
+  if (modo_ranking == RANKING_COMPLETO){
     printf("RANKING de %s COMPLETO \n" , ranking);
-    mostra_ranking(ranking, CONFIG_VACIA);
-  }else{
-    strcpy(arg_2,strtok(argv[2], SEPARADOR));
-    if(strcmp(arg_2,"config")==0){
-      strcpy(arg_2_valor,strtok(NULL, SEPARADOR));
-      obtener_direc_ranking(arg_2_valor, ranking);
-      if (argv[3]==NULL){
-        printf("RANKING de %s COMPLETO \n" , ranking);
-        mostra_ranking(ranking, CONFIG_VACIA);
-      }else{
-        strcpy(arg_3,strtok(argv[3], SEPARADOR));
-        strcat(arg_3,strtok(NULL, SEPARADOR));
-        int tope_lista=atoi(arg_3_valor);
-        printf("RANKING de %s con %i jugadores \n", ranking, tope_lista);
-        mostra_ranking(ranking, tope_lista);
-      }
-    }else if(strcmp(arg_2,"listar") == 0){
-      int tope_lista=atoi(strtok(NULL, SEPARADOR));
-      if (argv[3]==NULL){
-        strcpy(arg_2, ARCHIVO_CONFIG_STANDARD);
-        obtener_direc_ranking(arg_2, ranking);
-        printf("RANKING de %s con %i jugadores \n", ranking, tope_lista);
-        mostra_ranking(ranking, tope_lista);
-      }else{
-        strcpy(arg_3,strtok(argv[3], SEPARADOR));
-        strcpy(arg_3_valor,strtok(NULL, SEPARADOR));
-        obtener_direc_ranking(arg_3_valor, ranking);
-        printf("RANKING de %s con %i jugadores \n", ranking, tope_lista);
-        mostra_ranking(ranking, tope_lista);
-      }
-    }
+  }else if (modo_ranking == RANKING_LISTADO){
+    printf("RANKING de %s con %i jugadores \n", ranking, tope_lista);
   }
+  mostra_ranking(ranking, tope_lista);
 }
 /*
 *Analisis: Avisa si no puede abrir el archivo, sino lo lee y muestra por pantalla contenido
