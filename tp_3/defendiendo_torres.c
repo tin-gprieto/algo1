@@ -5,6 +5,7 @@
 
 
 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -202,13 +203,12 @@ void dibujar_campo(juego_t juego, char campo_de_batalla[MAX_CAMPO_FILA][MAX_CAMP
 		printf("SALUD TORRE 2: %i     ENEMIGOS RESTANTES: %i / %i \n", salud_torre_2, ORCOS_NVL_2 - enemigos, ORCOS_NVL_2);
 		printf("CRÍTICO:  %i °/.       FALLO: %i  °/. \n", critico_elfos, fallo_elfos);
 	}
-	if(juego.nivel_actual==NIVEL_3){
-		printf("SALUD TORRE 1: %i     SALUD TORRE 2: %i    ENEMIGOS RESTANTES: %i / %i \n", salud_torre_1, salud_torre_2, ORCOS_NVL_3 - enemigos, ORCOS_NVL_3);
-		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ENANO, critico_enanos, ENANO, fallo_enanos);
-		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ELFO, critico_elfos, ELFO, fallo_elfos);
-	}
-	if(juego.nivel_actual==NIVEL_4){
-		printf("SALUD TORRE 1: %i     SALUD TORRE 2: %i    ENEMIGOS RESTANTES: %i / %i \n", salud_torre_1, salud_torre_2, ORCOS_NVL_4 - enemigos, ORCOS_NVL_4);
+	if((juego.nivel_actual==NIVEL_3)||(juego.nivel_actual==NIVEL_4)){
+		if(juego.nivel_actual==NIVEL_3){
+				printf("SALUD TORRE 1: %i     SALUD TORRE 2: %i    ENEMIGOS RESTANTES: %i / %i \n", salud_torre_1, salud_torre_2, ORCOS_NVL_3 - enemigos, ORCOS_NVL_3);
+		}else{
+			printf("SALUD TORRE 1: %i     SALUD TORRE 2: %i    ENEMIGOS RESTANTES: %i / %i \n", salud_torre_1, salud_torre_2, ORCOS_NVL_4 - enemigos, ORCOS_NVL_4);
+		}
 		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ENANO, critico_enanos, ENANO, fallo_enanos);
 		printf("CRÍTICO %c:  %i °/.      FALLO %c: %i  °/. \n", ELFO, critico_elfos, ELFO, fallo_elfos);
 	}
